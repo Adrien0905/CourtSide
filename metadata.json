@@ -1,0 +1,6 @@
+{
+  "name": "COURTSIDE - NBA Scouting Database",
+  "description": "Professional personal scouting database and prospect evaluation suite for the 2027 NBA Draft and beyond.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
