@@ -1,7 +1,7 @@
 import React from 'react';
 import { GitCompare, X, Plus, Trophy, Ruler, BarChart2 } from 'lucide-react';
 import { useScouting } from '../../context/ScoutingContext';
-import { RadarChart } from '../common/RadarChart';
+import { RadarChart, categoryRadarPoints } from '../common/RadarChart';
 
 export const PlayerComparisonView: React.FC = () => {
   const {
@@ -26,15 +26,7 @@ export const PlayerComparisonView: React.FC = () => {
   const p2 = selectedProspects[1];
 
   const toRadar = (prospect: typeof p1) =>
-    prospect?.latestReport
-      ? [
-          { axis: 'Physical', value: prospect.latestReport.categoryGrades.physical },
-          { axis: 'Offense', value: prospect.latestReport.categoryGrades.offensive },
-          { axis: 'Defense', value: prospect.latestReport.categoryGrades.defensive },
-          { axis: 'B-Ball IQ', value: prospect.latestReport.categoryGrades.basketballIq },
-          { axis: 'Mentality', value: prospect.latestReport.categoryGrades.mentality },
-        ]
-      : undefined;
+    prospect?.latestReport ? categoryRadarPoints(prospect.latestReport.categoryGrades) : undefined;
 
   const p1Radar = toRadar(p1);
   const p2Radar = toRadar(p2);

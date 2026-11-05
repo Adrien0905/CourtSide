@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
-import { FileSpreadsheet, Plus, Search, Star, ExternalLink, Filter } from 'lucide-react';
+import { Edit, FileSpreadsheet, Plus, Search, Star, ExternalLink, Filter, Trash2 } from 'lucide-react';
 import { useScouting } from '../../context/ScoutingContext';
-import { confidenceLabel } from '../../types/scouting';
+import { ScoutingReport, confidenceLabel } from '../../types/scouting';
 
 interface ScoutingReportsViewProps {
   onOpenNewReportModal: () => void;
+  onEditReport: (report: ScoutingReport) => void;
 }
 
 export const ScoutingReportsView: React.FC<ScoutingReportsViewProps> = ({
   onOpenNewReportModal,
+  onEditReport,
 }) => {
-  const { reports, prospects, setSelectedProspectId, setActiveView } = useScouting();
+  const { reports, prospects, setSelectedProspectId, setActiveView, deleteReport } = useScouting();
   const [search, setSearch] = useState('');
 
   const filteredReports = reports.filter((r) => {
@@ -105,10 +107,38 @@ export const ScoutingReportsView: React.FC<ScoutingReportsViewProps> = ({
                     </div>
                   </div>
 
-                  <div className="text-right">
+                  <div className="text-right space-y-2">
                     <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                      {report.overallGrade.toFixed(1)} / 10
+                      {Number(report.overallGrade || 0).toFixed(1)} / 10
                     </span>
+                    <div className="flex justify-end gap-1.5">
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onEditReport(report);
+                        }}
+                        className="px-2 py-1 rounded bg-[#1A263D] hover:bg-[#223250] text-[10px] font-semibold text-slate-200 border border-[#283C5E] inline-flex items-center gap-1"
+                      >
+                        <Edit className="w-3 h-3" />
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          const confirmed = window.confirm('Delete this scouting report? This cannot be undone.');
+                          if (!confirmed) return;
+                          deleteReport(report.id).catch((err) => {
+                            console.error('[COURTSIDE] Failed to delete scouting report from list', err);
+                          });
+                        }}
+                        className="px-2 py-1 rounded bg-rose-500/10 hover:bg-rose-500/20 text-[10px] font-semibold text-rose-300 border border-rose-500/30 inline-flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
 

@@ -1,15 +1,45 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, FileSpreadsheet, ChevronDown, ChevronUp, Sliders, Check, HelpCircle } from 'lucide-react';
 import { useScouting } from '../../context/ScoutingContext';
-import { CONFIDENCE_OPTIONS, ConfidenceLevel } from '../../types/scouting';
+import { CONFIDENCE_OPTIONS, ConfidenceLevel, ScoutingReport } from '../../types/scouting';
 
 interface NewReportModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialReport?: ScoutingReport | null;
 }
 
-export const NewReportModal: React.FC<NewReportModalProps> = ({ isOpen, onClose }) => {
-  const { prospects, activeProspect, addReport, setActiveView } = useScouting();
+const EMPTY_SUB_SKILLS: { [key: string]: number | null } = {
+  size: null,
+  mobility: null,
+  explosiveness: null,
+  strength: null,
+  shooting: null,
+  threePointShooting: null,
+  finishing: null,
+  rimPressure: null,
+  passing: null,
+  ballHandling: null,
+  pointOfAttackDefense: null,
+  perimeterDefense: null,
+  rimProtection: null,
+  switchability: null,
+  courtVision: null,
+  decisionMakingGeneral: null,
+  competitiveness: null,
+  motor: null,
+};
+
+export const NewReportModal: React.FC<NewReportModalProps> = ({ isOpen, onClose, initialReport = null }) => {
+  const {
+    prospects,
+    activeProspect,
+    addReport,
+    updateReport,
+    setActiveView,
+    setSelectedProspectId,
+    setDossierFocus,
+  } = useScouting();
 
   const [prospectId, setProspectId] = useState(activeProspect?.id || prospects[0]?.id || '');
   const [reportType, setReportType] = useState<'Overall Prospect Evaluation' | 'Single Game Report'>('Overall Prospect Evaluation');
@@ -40,26 +70,9 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({ isOpen, onClose 
 
   // Expandable Detailed Sub-Skills
   const [showDetailedGrades, setShowDetailedGrades] = useState(false);
-  const [subSkills, setSubSkills] = useState<{ [key: string]: number | null }>({
-    size: null,
-    mobility: null,
-    explosiveness: null,
-    strength: null,
-    shooting: null,
-    threePointShooting: null,
-    finishing: null,
-    rimPressure: null,
-    passing: null,
-    ballHandling: null,
-    pointOfAttackDefense: null,
-    perimeterDefense: null,
-    rimProtection: null,
-    switchability: null,
-    courtVision: null,
-    decisionMakingGeneral: null,
-    competitiveness: null,
-    motor: null,
-  });
+  const [subSkills, setSubSkills] = useState<{ [key: string]: number | null }>({ ...EMPTY_SUB_SKILLS });
+  const [isSaving, setIsSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Projection
   const [nbaArchetype, setNbaArchetype] = useState('');
@@ -70,6 +83,81 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({ isOpen, onClose 
   const [weaknessesText, setWeaknessesText] = useState('');
   const [comparisonsText, setComparisonsText] = useState('');
   const [executiveSummary, setExecutiveSummary] = useState('');
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    if (initialReport) {
+      const grades = initialReport.categoryGrades || {
+        physical: 0,
+        offensive: 0,
+        defensive: 0,
+        basketballIq: 0,
+        mentality: 0,
+      };
+      setProspectId(initialReport.prospectId);
+      setReportType(initialReport.reportType || 'Overall Prospect Evaluation');
+      setReportDate(initialReport.reportDate || new Date().toISOString().slice(0, 10));
+      setGameOrEvent(initialReport.gameOrEvent || '');
+      setCompetition((initialReport.competition as 'NCAA D1' | 'NBA G League') || 'NCAA D1');
+      setOpponent(initialReport.opponent || '');
+      setMinutesObserved(initialReport.minutesObserved || 30);
+      setConfidence((initialReport.confidence || 1) as ConfidenceLevel);
+      setPhysicalRated(grades.physical > 0);
+      setPhysicalGrade(grades.physical > 0 ? grades.physical : 7.5);
+      setOffensiveRated(grades.offensive > 0);
+      setOffensiveGrade(grades.offensive > 0 ? grades.offensive : 7.5);
+      setDefensiveRated(grades.defensive > 0);
+      setDefensiveGrade(grades.defensive > 0 ? grades.defensive : 7);
+      setBballIqRated(grades.basketballIq > 0);
+      setBballIqGrade(grades.basketballIq > 0 ? grades.basketballIq : 7.5);
+      setMentalityRated(grades.mentality > 0);
+      setMentalityGrade(grades.mentality > 0 ? grades.mentality : 7.5);
+      setOverallGrade(initialReport.overallGrade || 0);
+      setSubSkills({ ...EMPTY_SUB_SKILLS, ...(initialReport.detailedGrades || {}) });
+      setNbaArchetype(initialReport.nbaArchetype || '');
+      setProjectedRole(initialReport.projectedRole || '');
+      setFloor(initialReport.floor || '');
+      setCeiling(initialReport.ceiling || '');
+      setStrengthsText((initialReport.strengths || []).join(', '));
+      setWeaknessesText((initialReport.weaknesses || []).join(', '));
+      setComparisonsText((initialReport.playerComparisons || []).join(', '));
+      setExecutiveSummary(initialReport.executiveSummary || '');
+    } else {
+      setProspectId(activeProspect?.id || prospects[0]?.id || '');
+      setReportType('Overall Prospect Evaluation');
+      setReportDate(new Date().toISOString().slice(0, 10));
+      setGameOrEvent('');
+      setCompetition('NCAA D1');
+      setOpponent('');
+      setMinutesObserved(30);
+      setConfidence(1);
+      setPhysicalRated(true);
+      setPhysicalGrade(7.5);
+      setOffensiveRated(true);
+      setOffensiveGrade(7.5);
+      setDefensiveRated(true);
+      setDefensiveGrade(7);
+      setBballIqRated(true);
+      setBballIqGrade(7.5);
+      setMentalityRated(true);
+      setMentalityGrade(7.5);
+      setOverallGrade(7.5);
+      setSubSkills({ ...EMPTY_SUB_SKILLS });
+      setShowDetailedGrades(false);
+      setNbaArchetype('');
+      setProjectedRole('');
+      setFloor('');
+      setCeiling('');
+      setStrengthsText('');
+      setWeaknessesText('');
+      setComparisonsText('');
+      setExecutiveSummary('');
+    }
+
+    setFormError(null);
+    setIsSaving(false);
+  }, [isOpen, initialReport]);
 
   if (!isOpen) return null;
 
@@ -95,9 +183,27 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({ isOpen, onClose 
     setSubSkills((prev) => ({ ...prev, [key]: val }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!prospectId || !executiveSummary.trim()) return;
+    e.stopPropagation();
+    console.log('[COURTSIDE] Scouting report form onSubmit', {
+      prospectId,
+      editing: Boolean(initialReport),
+    });
+
+    if (!prospectId) {
+      setFormError('Select a prospect before saving.');
+      console.error('[COURTSIDE] Scouting report submit blocked: missing prospect');
+      return;
+    }
+    if (!executiveSummary.trim()) {
+      setFormError('Executive scout summary is required.');
+      console.error('[COURTSIDE] Scouting report submit blocked: missing summary');
+      return;
+    }
+
+    setFormError(null);
+    setIsSaving(true);
 
     const strengths = strengthsText
       .split(',')
@@ -122,7 +228,7 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({ isOpen, onClose 
       }
     });
 
-    addReport({
+    const payload = {
       prospectId,
       reportDate,
       reportType,
@@ -155,10 +261,26 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({ isOpen, onClose 
       playerComparisons,
       overallGrade: Number(overallGrade),
       executiveSummary: executiveSummary.trim(),
-    });
+    };
 
-    onClose();
-    setActiveView('dossier');
+    console.log('[COURTSIDE] Scouting report payload', payload);
+
+    try {
+      if (initialReport) {
+        await updateReport(initialReport.id, payload);
+      } else {
+        await addReport(payload);
+      }
+      setSelectedProspectId(prospectId);
+      setDossierFocus('scouting');
+      setActiveView('dossier');
+      onClose();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not save the scouting report.';
+      console.error('[COURTSIDE] Scouting report submit failed', err);
+      setFormError(message);
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -172,7 +294,7 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({ isOpen, onClose 
             </div>
             <div>
               <h2 className="text-base font-bold text-white tracking-tight">
-                Create Structured Scouting Report
+                {initialReport ? 'Edit Structured Scouting Report' : 'Create Structured Scouting Report'}
               </h2>
               <p className="text-xs text-slate-400">
                 10-point scale professional evaluation with "Unrated" option & SQLite persistence.
@@ -187,7 +309,7 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({ isOpen, onClose 
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        <form id="scouting-report-form" noValidate onSubmit={handleSubmit} className="space-y-4 text-xs">
           {/* Target Prospect & Report Type Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -684,6 +806,12 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({ isOpen, onClose 
             />
           </div>
 
+          {formError && (
+            <p className="text-xs text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded px-3 py-2">
+              {formError}
+            </p>
+          )}
+
           {/* Form Actions */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#1E293B]">
             <button
@@ -695,9 +823,12 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({ isOpen, onClose 
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-md bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition-colors shadow-sm"
+              form="scouting-report-form"
+              disabled={isSaving}
+              onClick={() => console.log('[COURTSIDE] Save scouting report button clicked')}
+              className="px-5 py-2 rounded-md bg-amber-500 hover:bg-amber-400 disabled:opacity-60 text-slate-950 font-bold transition-colors shadow-sm"
             >
-              Save Scouting Report to SQLite
+              {isSaving ? 'Saving…' : initialReport ? 'Update Scouting Report' : 'Save Scouting Report to SQLite'}
             </button>
           </div>
         </form>

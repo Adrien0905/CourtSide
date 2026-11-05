@@ -57,6 +57,8 @@ interface ScoutingContextType {
   updateProspect: (id: string, updates: Partial<Prospect>) => Promise<void>;
   deleteProspect: (id: string) => Promise<void>;
   addReport: (report: Omit<ScoutingReport, 'id'>) => Promise<void>;
+  updateReport: (id: string, report: Omit<ScoutingReport, 'id'>) => Promise<void>;
+  deleteReport: (id: string) => Promise<void>;
   addNote: (note: Omit<FreeformNote, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   updateNote: (id: string, updates: Partial<FreeformNote>) => Promise<void>;
   deleteNote: (id: string) => Promise<void>;
@@ -77,6 +79,34 @@ interface ScoutingContextType {
 }
 
 const ScoutingContext = createContext<ScoutingContextType | undefined>(undefined);
+
+async function requestJson<T = ScoutingReport>(url: string, method: string, body?: unknown): Promise<T> {
+  console.log(`[COURTSIDE] ${method} ${url}`, body ?? '');
+  const res = await fetch(url, {
+    method,
+    headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+  const text = await res.text();
+  let data: unknown = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = text;
+    }
+  }
+  if (!res.ok) {
+    const message =
+      data && typeof data === 'object' && data !== null && 'error' in data
+        ? String((data as { error: unknown }).error)
+        : `HTTP ${res.status}`;
+    console.error(`[COURTSIDE] ${method} ${url} failed`, res.status, data);
+    throw new Error(message);
+  }
+  console.log(`[COURTSIDE] ${method} ${url} ok`, data);
+  return data as T;
+}
 
 function stripBrowserCache() {
   try {
@@ -249,12 +279,34 @@ export const ScoutingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  const applySavedReport = (saved: ScoutingReport, previousId?: string) => {
+    setReports((prev) => {
+      const withoutTemp = prev.filter((report) => report.id !== previousId && report.id !== saved.id);
+      return [saved, ...withoutTemp].sort((a, b) => (b.reportDate || '').localeCompare(a.reportDate || ''));
+    });
+    setProspects((prev) =>
+      prev.map((prospect) => {
+        if (prospect.id !== saved.prospectId) return prospect;
+        const isLatest =
+          !prospect.latestReport ||
+          prospect.latestReport.id === saved.id ||
+          prospect.latestReport.id === previousId ||
+          (prospect.latestReport.reportDate || '') <= (saved.reportDate || '');
+        return {
+          ...prospect,
+          latestReport: isLatest ? saved : prospect.latestReport,
+          updatedAt: new Date().toISOString(),
+        };
+      })
+    );
+  };
+
   // Add Scouting Report via SQLite API
   const addReport = async (reportData: Omit<ScoutingReport, 'id'>) => {
     const id = `rep-${Date.now()}`;
     const newReport: ScoutingReport = { ...reportData, id };
+    console.log('[COURTSIDE] addReport submit', newReport);
 
-    // Optimistic UI updates
     setReports((prev) => [newReport, ...prev]);
     setProspects((prev) =>
       prev.map((p) => {
@@ -272,13 +324,78 @@ export const ScoutingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     );
 
     try {
-      await fetch('/api/reports', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newReport),
-      });
+      const saved = await requestJson<ScoutingReport>(
+        `/api/prospects/${encodeURIComponent(newReport.prospectId)}/reports`,
+        'POST',
+        newReport
+      );
+      applySavedReport(saved, id);
     } catch (err) {
-      console.warn('Could not persist report to SQLite API:', err);
+      console.error('[COURTSIDE] addReport failed', err);
+      await refreshAllData();
+      throw err;
+    }
+  };
+
+  const updateReport = async (id: string, reportData: Omit<ScoutingReport, 'id'>) => {
+    const nextReport: ScoutingReport = { ...reportData, id };
+    console.log('[COURTSIDE] updateReport submit', nextReport);
+    const previousReports = reports;
+    const previousProspects = prospects;
+    applySavedReport(nextReport, id);
+
+    try {
+      const saved = await requestJson<ScoutingReport>(`/api/reports/${encodeURIComponent(id)}`, 'PUT', nextReport);
+      applySavedReport(saved, id);
+    } catch (err) {
+      console.error('[COURTSIDE] updateReport failed', err);
+      setReports(previousReports);
+      setProspects(previousProspects);
+      throw err;
+    }
+  };
+
+  const deleteReport = async (id: string) => {
+    const target = reports.find((report) => report.id === id);
+    console.log('[COURTSIDE] deleteReport submit', id, target?.prospectId);
+    if (!target) {
+      console.error('[COURTSIDE] deleteReport missing local report', id);
+      return;
+    }
+
+    const previousReports = reports;
+    const previousProspects = prospects;
+    const remaining = reports.filter((report) => report.id !== id);
+    setReports(remaining);
+    setProspects((prev) =>
+      prev.map((prospect) => {
+        if (prospect.id !== target.prospectId) return prospect;
+        const latest = remaining
+          .filter((report) => report.prospectId === prospect.id)
+          .sort((a, b) => (b.reportDate || '').localeCompare(a.reportDate || ''))[0];
+        return {
+          ...prospect,
+          reportsCount: Math.max(0, (prospect.reportsCount || 1) - 1),
+          latestReport: latest,
+        };
+      })
+    );
+
+    try {
+      await requestJson(`/api/reports/${encodeURIComponent(id)}`, 'DELETE');
+    } catch (err) {
+      console.error('[COURTSIDE] deleteReport failed, trying nested route', err);
+      try {
+        await requestJson(
+          `/api/prospects/${encodeURIComponent(target.prospectId)}/reports/${encodeURIComponent(id)}`,
+          'DELETE'
+        );
+      } catch (nestedErr) {
+        console.error('[COURTSIDE] deleteReport nested route failed', nestedErr);
+        setReports(previousReports);
+        setProspects(previousProspects);
+        throw nestedErr;
+      }
     }
   };
 
@@ -620,6 +737,8 @@ export const ScoutingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         updateProspect,
         deleteProspect,
         addReport,
+        updateReport,
+        deleteReport,
         addNote,
         updateNote,
         deleteNote,

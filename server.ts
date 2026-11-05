@@ -316,8 +316,20 @@ function mapProspectFromDb(row: any): any {
   };
 }
 
+function safeJsonParse(value: any, fallback: any) {
+  if (value == null || value === '') return fallback;
+  if (typeof value !== 'string') return value;
+  try {
+    return JSON.parse(value);
+  } catch (err) {
+    console.error('[COURTSIDE] Failed to parse JSON column', err);
+    return fallback;
+  }
+}
+
 function mapReportFromDb(row: any): any {
   if (!row) return null;
+  const emptyGrades = { physical: 0, offensive: 0, defensive: 0, basketballIq: 0, mentality: 0 };
   return {
     id: row.id,
     prospectId: row.prospect_id,
@@ -329,8 +341,12 @@ function mapReportFromDb(row: any): any {
     opponent: row.opponent,
     minutesObserved: row.minutes_observed,
     confidence: row.confidence,
-    categoryGrades: row.category_grades ? JSON.parse(row.category_grades) : { physical: 0, offensive: 0, defensive: 0, basketballIq: 0, mentality: 0 },
-    detailedGrades: row.detailed_grades ? JSON.parse(row.detailed_grades) : undefined,
+    categoryGrades: { ...emptyGrades, ...safeJsonParse(row.category_grades, emptyGrades) },
+    detailedGrades: (() => {
+      const parsed = safeJsonParse(row.detailed_grades, undefined);
+      if (!parsed || typeof parsed !== 'object' || Object.keys(parsed).length === 0) return undefined;
+      return parsed;
+    })(),
     nbaArchetype: row.nba_archetype,
     projectedRole: row.projected_role,
     offensiveCeiling: row.offensive_ceiling,
@@ -338,13 +354,96 @@ function mapReportFromDb(row: any): any {
     floor: row.floor,
     ceiling: row.ceiling,
     overallPotential: row.overall_potential,
-    strengths: row.strengths ? JSON.parse(row.strengths) : [],
-    weaknesses: row.weaknesses ? JSON.parse(row.weaknesses) : [],
-    mainConcerns: row.main_concerns ? JSON.parse(row.main_concerns) : [],
-    playerComparisons: row.player_comparisons ? JSON.parse(row.player_comparisons) : [],
+    strengths: safeJsonParse(row.strengths, []),
+    weaknesses: safeJsonParse(row.weaknesses, []),
+    mainConcerns: safeJsonParse(row.main_concerns, []),
+    playerComparisons: safeJsonParse(row.player_comparisons, []),
     overallGrade: row.overall_grade,
     executiveSummary: row.executive_summary,
   };
+}
+
+function reportColumnValues(r: any) {
+  return [
+    r.prospectId,
+    r.reportDate || new Date().toISOString().slice(0, 10),
+    r.reportType || 'Overall Prospect Evaluation',
+    r.scoutName || 'Lead Scout',
+    r.gameOrEvent || '',
+    r.competition || 'NCAA D1',
+    r.opponent || null,
+    r.minutesObserved ?? null,
+    r.confidence ?? 1,
+    JSON.stringify(r.categoryGrades || {}),
+    r.detailedGrades && Object.keys(r.detailedGrades).length > 0 ? JSON.stringify(r.detailedGrades) : null,
+    r.nbaArchetype || '',
+    r.projectedRole || '',
+    r.offensiveCeiling || '',
+    r.defensiveCeiling || '',
+    r.floor || '',
+    r.ceiling || '',
+    r.overallPotential || '',
+    JSON.stringify(r.strengths || []),
+    JSON.stringify(r.weaknesses || []),
+    JSON.stringify(r.mainConcerns || []),
+    JSON.stringify(r.playerComparisons || []),
+    r.overallGrade ?? 0,
+    r.executiveSummary || '',
+  ];
+}
+
+function insertReport(r: any) {
+  const id = r.id || `rep-${Date.now()}`;
+  const now = new Date().toISOString();
+  db.prepare(`
+    INSERT INTO scouting_reports (
+      id, prospect_id, report_date, report_type, scout_name, game_or_event, competition, opponent,
+      minutes_observed, confidence, category_grades, detailed_grades, nba_archetype,
+      projected_role, offensive_ceiling, defensive_ceiling, floor, ceiling,
+      overall_potential, strengths, weaknesses, main_concerns, player_comparisons,
+      overall_grade, executive_summary, created_at
+    ) VALUES (
+      ?, ?, ?, ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?,
+      ?, ?, ?, ?, ?,
+      ?, ?, ?
+    )
+  `).run(id, ...reportColumnValues(r), now);
+
+  db.prepare(`
+    UPDATE prospects SET
+      status = CASE WHEN status IN ('To Observe', 'Watchlist') THEN 'Evaluated' ELSE status END,
+      updated_at = ?
+    WHERE id = ?
+  `).run(now, r.prospectId);
+
+  const created = db.prepare('SELECT * FROM scouting_reports WHERE id = ?').get(id);
+  return mapReportFromDb(created);
+}
+
+function updateReportRow(id: string, r: any) {
+  const existing = db.prepare('SELECT id, prospect_id FROM scouting_reports WHERE id = ?').get(id) as any;
+  if (!existing) return null;
+  const prospectId = r.prospectId || existing.prospect_id;
+  const now = new Date().toISOString();
+  db.prepare(`
+    UPDATE scouting_reports SET
+      prospect_id = ?, report_date = ?, report_type = ?, scout_name = ?, game_or_event = ?, competition = ?, opponent = ?,
+      minutes_observed = ?, confidence = ?, category_grades = ?, detailed_grades = ?, nba_archetype = ?,
+      projected_role = ?, offensive_ceiling = ?, defensive_ceiling = ?, floor = ?, ceiling = ?,
+      overall_potential = ?, strengths = ?, weaknesses = ?, main_concerns = ?, player_comparisons = ?,
+      overall_grade = ?, executive_summary = ?
+    WHERE id = ?
+  `).run(...reportColumnValues({ ...r, prospectId }), id);
+
+  db.prepare('UPDATE prospects SET updated_at = ? WHERE id = ?').run(now, prospectId);
+  const updated = db.prepare('SELECT * FROM scouting_reports WHERE id = ?').get(id);
+  return mapReportFromDb(updated);
+}
+
+function deleteReportRow(id: string) {
+  return db.prepare('DELETE FROM scouting_reports WHERE id = ?').run(id);
 }
 
 // ----------------------------------------------------
@@ -545,74 +644,96 @@ app.get('/api/reports', (req, res) => {
 });
 
 app.post('/api/reports', (req, res) => {
+  console.log('[COURTSIDE] POST /api/reports', req.body?.id, req.body?.prospectId);
   try {
-    const r = req.body;
-    const id = r.id || `rep-${Date.now()}`;
-    const now = new Date().toISOString();
-
-    db.prepare(`
-      INSERT INTO scouting_reports (
-        id, prospect_id, report_date, report_type, scout_name, game_or_event, competition, opponent,
-        minutes_observed, confidence, category_grades, detailed_grades, nba_archetype,
-        projected_role, offensive_ceiling, defensive_ceiling, floor, ceiling,
-        overall_potential, strengths, weaknesses, main_concerns, player_comparisons,
-        overall_grade, executive_summary, created_at
-      ) VALUES (
-        ?, ?, ?, ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?,
-        ?, ?, ?, ?, ?,
-        ?, ?, ?
-      )
-    `).run(
-      id,
-      r.prospectId,
-      r.reportDate || now.slice(0, 10),
-      r.reportType || 'Overall Prospect Evaluation',
-      r.scoutName || 'Lead Scout',
-      r.gameOrEvent || '',
-      r.competition || 'NCAA D1',
-      r.opponent || null,
-      r.minutesObserved ?? null,
-      r.confidence ?? 1,
-      JSON.stringify(r.categoryGrades || {}),
-      JSON.stringify(r.detailedGrades || {}),
-      r.nbaArchetype || '',
-      r.projectedRole || '',
-      r.offensiveCeiling || '',
-      r.defensiveCeiling || '',
-      r.floor || '',
-      r.ceiling || '',
-      r.overallPotential || '',
-      JSON.stringify(r.strengths || []),
-      JSON.stringify(r.weaknesses || []),
-      JSON.stringify(r.mainConcerns || []),
-      JSON.stringify(r.playerComparisons || []),
-      r.overallGrade ?? 0,
-      r.executiveSummary || '',
-      now
-    );
-
-    // Update prospect status to 'Evaluated' if was 'To Observe' or 'Watchlist'
-    db.prepare(`
-      UPDATE prospects SET
-        status = CASE WHEN status IN ('To Observe', 'Watchlist') THEN 'Evaluated' ELSE status END,
-        updated_at = ?
-      WHERE id = ?
-    `).run(now, r.prospectId);
-
-    const created = db.prepare('SELECT * FROM scouting_reports WHERE id = ?').get(id);
-    res.status(201).json(mapReportFromDb(created));
+    const created = insertReport(req.body || {});
+    console.log('[COURTSIDE] POST /api/reports created', created?.id);
+    res.status(201).json(created);
   } catch (err: any) {
+    console.error('[COURTSIDE] POST /api/reports failed', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/prospects/:id/reports', (req, res) => {
+  console.log('[COURTSIDE] POST /api/prospects/:id/reports', req.params.id);
+  try {
+    const created = insertReport({ ...(req.body || {}), prospectId: req.params.id });
+    console.log('[COURTSIDE] POST /api/prospects/:id/reports created', created?.id);
+    res.status(201).json(created);
+  } catch (err: any) {
+    console.error('[COURTSIDE] POST /api/prospects/:id/reports failed', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/reports/:id', (req, res) => {
+  console.log('[COURTSIDE] PUT /api/reports/:id', req.params.id);
+  try {
+    const updated = updateReportRow(req.params.id, { ...(req.body || {}), id: req.params.id });
+    if (!updated) {
+      console.error('[COURTSIDE] PUT /api/reports/:id not found', req.params.id);
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    console.log('[COURTSIDE] PUT /api/reports/:id updated', updated.id);
+    res.json(updated);
+  } catch (err: any) {
+    console.error('[COURTSIDE] PUT /api/reports/:id failed', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/prospects/:prospectId/reports/:reportId', (req, res) => {
+  console.log('[COURTSIDE] PUT /api/prospects/:prospectId/reports/:reportId', req.params.prospectId, req.params.reportId);
+  try {
+    const updated = updateReportRow(req.params.reportId, {
+      ...(req.body || {}),
+      id: req.params.reportId,
+      prospectId: req.params.prospectId,
+    });
+    if (!updated) {
+      console.error('[COURTSIDE] PUT nested report not found', req.params.reportId);
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    console.log('[COURTSIDE] PUT nested report updated', updated.id);
+    res.json(updated);
+  } catch (err: any) {
+    console.error('[COURTSIDE] PUT nested report failed', err);
     res.status(500).json({ error: err.message });
   }
 });
 
 app.delete('/api/reports/:id', (req, res) => {
+  console.log('[COURTSIDE] DELETE /api/reports/:id', req.params.id);
   try {
-    db.prepare('DELETE FROM scouting_reports WHERE id = ?').run(req.params.id);
+    const result = deleteReportRow(req.params.id);
+    if (result.changes === 0) {
+      console.error('[COURTSIDE] DELETE /api/reports/:id not found', req.params.id);
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    console.log('[COURTSIDE] DELETE /api/reports/:id removed', req.params.id);
     res.json({ success: true, id: req.params.id });
   } catch (err: any) {
+    console.error('[COURTSIDE] DELETE /api/reports/:id failed', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/prospects/:prospectId/reports/:reportId', (req, res) => {
+  console.log('[COURTSIDE] DELETE /api/prospects/:prospectId/reports/:reportId', req.params.prospectId, req.params.reportId);
+  try {
+    const existing = db.prepare(
+      'SELECT id FROM scouting_reports WHERE id = ? AND prospect_id = ?'
+    ).get(req.params.reportId, req.params.prospectId);
+    if (!existing) {
+      console.error('[COURTSIDE] DELETE nested report not found', req.params.reportId);
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    deleteReportRow(req.params.reportId);
+    console.log('[COURTSIDE] DELETE nested report removed', req.params.reportId);
+    res.json({ success: true, id: req.params.reportId });
+  } catch (err: any) {
+    console.error('[COURTSIDE] DELETE nested report failed', err);
     res.status(500).json({ error: err.message });
   }
 });

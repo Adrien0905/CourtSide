@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { ScoutingProvider, useScouting } from './context/ScoutingContext';
+import { ScoutingReport } from './types/scouting';
 import { Sidebar } from './components/layout/Sidebar';
 import { TopHeader } from './components/layout/TopHeader';
 import { DashboardView } from './components/dashboard/DashboardView';
@@ -23,6 +24,22 @@ const AppContent: React.FC = () => {
   const { activeView } = useScouting();
   const [isProspectModalOpen, setIsProspectModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [editingReport, setEditingReport] = useState<ScoutingReport | null>(null);
+
+  const openNewReport = () => {
+    setEditingReport(null);
+    setIsReportModalOpen(true);
+  };
+
+  const openEditReport = (report: ScoutingReport) => {
+    setEditingReport(report);
+    setIsReportModalOpen(true);
+  };
+
+  const closeReportModal = () => {
+    setIsReportModalOpen(false);
+    setEditingReport(null);
+  };
 
   const renderActiveView = () => {
     switch (activeView) {
@@ -30,7 +47,7 @@ const AppContent: React.FC = () => {
         return (
           <DashboardView
             onOpenNewProspectModal={() => setIsProspectModalOpen(true)}
-            onOpenNewReportModal={() => setIsReportModalOpen(true)}
+            onOpenNewReportModal={openNewReport}
           />
         );
       case 'database':
@@ -42,13 +59,15 @@ const AppContent: React.FC = () => {
       case 'dossier':
         return (
           <PlayerDossierView
-            onOpenNewReportModal={() => setIsReportModalOpen(true)}
+            onOpenNewReportModal={openNewReport}
+            onEditReport={openEditReport}
           />
         );
       case 'reports':
         return (
           <ScoutingReportsView
-            onOpenNewReportModal={() => setIsReportModalOpen(true)}
+            onOpenNewReportModal={openNewReport}
+            onEditReport={openEditReport}
           />
         );
       case 'draftboard':
@@ -65,7 +84,7 @@ const AppContent: React.FC = () => {
         return (
           <DashboardView
             onOpenNewProspectModal={() => setIsProspectModalOpen(true)}
-            onOpenNewReportModal={() => setIsReportModalOpen(true)}
+            onOpenNewReportModal={openNewReport}
           />
         );
     }
@@ -76,7 +95,7 @@ const AppContent: React.FC = () => {
       {/* Desktop Permanent Sidebar */}
       <Sidebar
         onOpenNewProspectModal={() => setIsProspectModalOpen(true)}
-        onOpenNewReportModal={() => setIsReportModalOpen(true)}
+        onOpenNewReportModal={openNewReport}
       />
 
       {/* Main Viewport */}
@@ -96,7 +115,8 @@ const AppContent: React.FC = () => {
 
       <NewReportModal
         isOpen={isReportModalOpen}
-        onClose={() => setIsReportModalOpen(false)}
+        onClose={closeReportModal}
+        initialReport={editingReport}
       />
     </div>
   );

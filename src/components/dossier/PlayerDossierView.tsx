@@ -29,15 +29,17 @@ import {
   FileText
 } from 'lucide-react';
 import { useScouting, DossierTab } from '../../context/ScoutingContext';
-import { RadarChart } from '../common/RadarChart';
-import { ProspectStatus, confidenceLabel } from '../../types/scouting';
+import { RadarChart, categoryRadarPoints } from '../common/RadarChart';
+import { ProspectStatus, ScoutingReport, confidenceLabel } from '../../types/scouting';
 
 interface PlayerDossierViewProps {
   onOpenNewReportModal: () => void;
+  onEditReport: (report: ScoutingReport) => void;
 }
 
 export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
   onOpenNewReportModal,
+  onEditReport,
 }) => {
   const {
     activeProspect,
@@ -49,6 +51,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
     addNote,
     updateNote,
     deleteNote,
+    deleteReport,
     setActiveView,
     toggleComparisonProspect,
     comparisonProspectIds,
@@ -112,7 +115,17 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
 
   const p = activeProspect;
   const isCompared = comparisonProspectIds.includes(p.id);
-  const playerReports = reports.filter((r) => r.prospectId === p.id);
+  const playerReports = reports
+    .filter((r) => r.prospectId === p.id)
+    .sort((a, b) => (b.reportDate || '').localeCompare(a.reportDate || ''));
+
+  const confirmDeleteReport = (reportId: string) => {
+    const confirmed = window.confirm('Delete this scouting report? This cannot be undone.');
+    if (!confirmed) return;
+    deleteReport(reportId).catch((err) => {
+      console.error('[COURTSIDE] Failed to delete scouting report from dossier', err);
+    });
+  };
   const playerNotes = notes.filter((n) => n.prospectId === p.id);
   const playerGameLogs = gameLogs.filter((g) => g.prospectId === p.id);
   const playerVideos = videos.filter((v) => v.prospectId === p.id);
@@ -166,15 +179,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
   };
 
   // Radar data points from report
-  const radarData = latestReport
-    ? [
-        { axis: 'Physical', value: latestReport.categoryGrades.physical },
-        { axis: 'Offense', value: latestReport.categoryGrades.offensive },
-        { axis: 'Defense', value: latestReport.categoryGrades.defensive },
-        { axis: 'B-Ball IQ', value: latestReport.categoryGrades.basketballIq },
-        { axis: 'Mentality', value: latestReport.categoryGrades.mentality },
-      ]
-    : [];
+  const radarData = latestReport ? categoryRadarPoints(latestReport.categoryGrades) : [];
 
   return (
     <div className="p-8 space-y-6 max-w-7xl mx-auto">
@@ -494,9 +499,27 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
 
               {/* Right Col: Radar Chart */}
               <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-5 flex flex-col items-center justify-center space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 self-start">
-                  Skill Evaluation Radar
-                </h3>
+                <div className="w-full flex items-center justify-between gap-2">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                    Skill Evaluation Radar
+                  </h3>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => onEditReport(latestReport)}
+                      className="px-2 py-1 rounded bg-[#1A263D] hover:bg-[#223250] text-[10px] font-semibold text-slate-200 border border-[#283C5E]"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => confirmDeleteReport(latestReport.id)}
+                      className="px-2 py-1 rounded bg-rose-500/10 hover:bg-rose-500/20 text-[10px] font-semibold text-rose-300 border border-rose-500/30"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
                 <RadarChart data={radarData} primaryLabel={`${p.firstName} ${p.lastName}`} size={270} />
 
                 {/* Grade breakdown mini table */}
@@ -685,10 +708,26 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                     </div>
                   </div>
 
-                  <div className="text-right">
+                  <div className="flex items-center gap-2">
                     <span className="text-xs font-medium text-amber-400">
                       {rep.nbaArchetype}
                     </span>
+                    <button
+                      type="button"
+                      onClick={() => onEditReport(rep)}
+                      className="px-2 py-1 rounded bg-[#1A263D] hover:bg-[#223250] text-[10px] font-semibold text-slate-200 border border-[#283C5E] inline-flex items-center gap-1"
+                    >
+                      <Edit className="w-3 h-3" />
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => confirmDeleteReport(rep.id)}
+                      className="px-2 py-1 rounded bg-rose-500/10 hover:bg-rose-500/20 text-[10px] font-semibold text-rose-300 border border-rose-500/30 inline-flex items-center gap-1"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Delete
+                    </button>
                   </div>
                 </div>
 
