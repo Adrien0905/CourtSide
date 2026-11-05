@@ -148,8 +148,9 @@ export interface ScoutingReport {
   id: string;
   prospectId: string;
   reportDate: string; // ISO string "2025-02-14"
+  reportType?: 'Overall Prospect Evaluation' | 'Single Game Report';
   scoutName: string; // Personal scout name
-  gameOrEvent?: string; // e.g. "Duke vs Kentucky - Champions Classic"
+  gameOrEvent?: string; // e.g. "Duke vs Kentucky - Champions Classic" or "Season Overview"
   competition?: string;
   opponent?: string;
   minutesObserved?: number;

@@ -92,8 +92,15 @@ export const ScoutingReportsView: React.FC<ScoutingReportsViewProps> = ({
                         </span>
                       )}
                     </h3>
-                    <div className="text-[11px] text-slate-400 mt-0.5">
-                      {report.gameOrEvent} · {report.reportDate}
+                    <div className="text-[11px] text-slate-400 mt-0.5 flex flex-wrap items-center gap-1.5">
+                      <span>{report.gameOrEvent}</span>
+                      {report.reportType && (
+                        <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-amber-400/10 text-amber-300 border border-amber-400/20">
+                          {report.reportType}
+                        </span>
+                      )}
+                      <span aria-hidden="true" className="text-slate-600">·</span>
+                      <span>{report.reportDate}</span>
                     </div>
                   </div>
 
@@ -128,23 +135,33 @@ export const ScoutingReportsView: React.FC<ScoutingReportsViewProps> = ({
                 <div className="grid grid-cols-5 gap-1.5 text-center text-[10px] font-mono">
                   <div className="p-1 rounded bg-[#162035] border border-[#22314E]">
                     <div className="text-slate-400">PHYS</div>
-                    <div className="font-bold text-white mt-0.5">{report.categoryGrades.physical.toFixed(1)}</div>
+                    <div className="font-bold text-white mt-0.5">
+                      {report.categoryGrades.physical > 0 ? report.categoryGrades.physical.toFixed(1) : '—'}
+                    </div>
                   </div>
                   <div className="p-1 rounded bg-[#162035] border border-[#22314E]">
                     <div className="text-slate-400">OFF</div>
-                    <div className="font-bold text-white mt-0.5">{report.categoryGrades.offensive.toFixed(1)}</div>
+                    <div className="font-bold text-white mt-0.5">
+                      {report.categoryGrades.offensive > 0 ? report.categoryGrades.offensive.toFixed(1) : '—'}
+                    </div>
                   </div>
                   <div className="p-1 rounded bg-[#162035] border border-[#22314E]">
                     <div className="text-slate-400">DEF</div>
-                    <div className="font-bold text-white mt-0.5">{report.categoryGrades.defensive.toFixed(1)}</div>
+                    <div className="font-bold text-white mt-0.5">
+                      {report.categoryGrades.defensive > 0 ? report.categoryGrades.defensive.toFixed(1) : '—'}
+                    </div>
                   </div>
                   <div className="p-1 rounded bg-[#162035] border border-[#22314E]">
                     <div className="text-slate-400">IQ</div>
-                    <div className="font-bold text-white mt-0.5">{report.categoryGrades.basketballIq.toFixed(1)}</div>
+                    <div className="font-bold text-white mt-0.5">
+                      {report.categoryGrades.basketballIq > 0 ? report.categoryGrades.basketballIq.toFixed(1) : '—'}
+                    </div>
                   </div>
                   <div className="p-1 rounded bg-[#162035] border border-[#22314E]">
                     <div className="text-slate-400">MENT</div>
-                    <div className="font-bold text-white mt-0.5">{report.categoryGrades.mentality.toFixed(1)}</div>
+                    <div className="font-bold text-white mt-0.5">
+                      {report.categoryGrades.mentality > 0 ? report.categoryGrades.mentality.toFixed(1) : '—'}
+                    </div>
                   </div>
                 </div>
 

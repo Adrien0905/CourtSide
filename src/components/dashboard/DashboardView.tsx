@@ -279,11 +279,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         {r.executiveSummary}
                       </p>
 
-                      <div className="flex items-center gap-3 pt-1 text-[11px] text-slate-400">
-                        <span>Ceiling: {r.ceiling}</span>
-                        <span aria-hidden="true">·</span>
-                        <span>Comps: {r.playerComparisons.join(', ')}</span>
-                      </div>
+                      {(r.ceiling || r.playerComparisons.length > 0) && (
+                        <div className="flex items-center gap-3 pt-1 text-[11px] text-slate-400">
+                          {r.ceiling && <span>Ceiling: {r.ceiling}</span>}
+                          {r.ceiling && r.playerComparisons.length > 0 && <span aria-hidden="true">·</span>}
+                          {r.playerComparisons.length > 0 && <span>Comps: {r.playerComparisons.join(', ')}</span>}
+                        </div>
+                      )}
                     </div>
                   );
                 })

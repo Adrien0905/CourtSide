@@ -19,7 +19,14 @@ import {
   Tag,
   Edit,
   Trash2,
-  ChevronRight
+  ChevronRight,
+  Bold,
+  Italic,
+  Heading,
+  List,
+  Check,
+  Save,
+  FileText
 } from 'lucide-react';
 import { useScouting } from '../../context/ScoutingContext';
 import { RadarChart } from '../common/RadarChart';
@@ -40,6 +47,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
     gameLogs,
     videos,
     addNote,
+    updateNote,
     deleteNote,
     setActiveView,
     toggleComparisonProspect,
@@ -54,6 +62,64 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
   const [newNoteContent, setNewNoteContent] = useState('');
   const [newNoteTags, setNewNoteTags] = useState('');
   const [isAddingNote, setIsAddingNote] = useState(false);
+  const [autosaveIndicator, setAutosaveIndicator] = useState<string | null>(null);
+
+  // In-line note editing state
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editContent, setEditContent] = useState('');
+  const [editTags, setEditTags] = useState('');
+
+  // Draft autosave in browser
+  React.useEffect(() => {
+    if (!activeProspect) return;
+    const draftKey = `courtside_draft_note_${activeProspect.id}`;
+    const saved = localStorage.getItem(draftKey);
+    if (saved && !newNoteContent && !newNoteTitle) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.title || parsed.content) {
+          setNewNoteTitle(parsed.title || '');
+          setNewNoteContent(parsed.content || '');
+          setNewNoteTags(parsed.tags || '');
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }, [activeProspect?.id]);
+
+  // Handle draft autosaving as user types
+  const handleContentChange = (content: string) => {
+    setNewNoteContent(content);
+    if (!activeProspect) return;
+    const draftKey = `courtside_draft_note_${activeProspect.id}`;
+    localStorage.setItem(
+      draftKey,
+      JSON.stringify({ title: newNoteTitle, content, tags: newNoteTags })
+    );
+    setAutosaveIndicator('Draft autosaved locally');
+    setTimeout(() => setAutosaveIndicator(null), 2500);
+  };
+
+  const handleTitleChange = (title: string) => {
+    setNewNoteTitle(title);
+    if (!activeProspect) return;
+    const draftKey = `courtside_draft_note_${activeProspect.id}`;
+    localStorage.setItem(
+      draftKey,
+      JSON.stringify({ title, content: newNoteContent, tags: newNoteTags })
+    );
+  };
+
+  // Helper to insert markdown tags at end of newNoteContent
+  const insertMarkdown = (prefix: string, suffix: string = '') => {
+    setNewNoteContent((prev) => `${prev}${prefix}${suffix}`);
+  };
+
+  const insertTemplate = (template: string) => {
+    setNewNoteContent((prev) => (prev ? `${prev}\n\n${template}` : template));
+  };
 
   if (!activeProspect) {
     return (
@@ -99,10 +165,33 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
         .filter(Boolean),
     });
 
+    localStorage.removeItem(`courtside_draft_note_${p.id}`);
     setNewNoteTitle('');
     setNewNoteContent('');
     setNewNoteTags('');
     setIsAddingNote(false);
+  };
+
+  const handleStartEditNote = (note: { id: string; title: string; content: string; tags: string[] }) => {
+    setEditingNoteId(note.id);
+    setEditTitle(note.title);
+    setEditContent(note.content);
+    setEditTags(note.tags.join(', '));
+  };
+
+  const handleSaveEditNote = (id: string) => {
+    if (!editTitle.trim() || !editContent.trim()) return;
+
+    updateNote(id, {
+      title: editTitle.trim(),
+      content: editContent.trim(),
+      tags: editTags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean),
+    });
+
+    setEditingNoteId(null);
   };
 
   // Radar data points from report
@@ -453,11 +542,13 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                         <div className="w-24 h-1.5 rounded-full bg-slate-800 overflow-hidden">
                           <div
                             className="h-full bg-amber-500 rounded-full"
-                            style={{ width: `${(d.value / 10) * 100}%` }}
+                            style={{ width: d.value > 0 ? `${(d.value / 10) * 100}%` : '0%' }}
                           />
                         </div>
-                        <span className="font-mono font-bold text-white tabular-nums w-8 text-right">
-                          {d.value.toFixed(1)}
+                        <span className={`font-mono font-bold tabular-nums text-right ${
+                          d.value > 0 ? 'text-white w-8' : 'text-slate-500 text-[10px] w-12'
+                        }`}>
+                          {d.value > 0 ? d.value.toFixed(1) : 'Unrated'}
                         </span>
                       </div>
                     </div>
@@ -609,8 +700,13 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
               <div key={rep.id} className="bg-[#111827] border border-[#1E293B] rounded-lg p-6 space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1E293B] pb-4">
                   <div>
-                    <h4 className="text-base font-bold text-white flex items-center gap-3">
-                      <span>{rep.gameOrEvent || 'Comprehensive Evaluation'}</span>
+                    <h4 className="text-base font-bold text-white flex flex-wrap items-center gap-2.5">
+                      <span>{rep.gameOrEvent || (rep.reportType === 'Overall Prospect Evaluation' ? 'Season Overview' : 'Comprehensive Evaluation')}</span>
+                      {rep.reportType && (
+                        <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-sky-500/10 text-sky-300 border border-sky-500/20 font-medium">
+                          {rep.reportType}
+                        </span>
+                      )}
                       <span className="font-mono text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                         Overall: {rep.overallGrade.toFixed(1)} / 10
                       </span>
@@ -645,7 +741,9 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                         ].map((item) => (
                           <div key={item.name} className="flex justify-between items-center text-slate-300">
                             <span>{item.name}</span>
-                            <span className="font-mono font-bold text-amber-300">{item.val ?? '—'}</span>
+                            <span className="font-mono font-bold text-amber-300">
+                              {item.val && item.val > 0 ? item.val : '—'}
+                            </span>
                           </div>
                         ))}
                       </div>
@@ -666,7 +764,9 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                         ].map((item) => (
                           <div key={item.name} className="flex justify-between items-center text-slate-300">
                             <span>{item.name}</span>
-                            <span className="font-mono font-bold text-sky-300">{item.val ?? '—'}</span>
+                            <span className="font-mono font-bold text-sky-300">
+                              {item.val && item.val > 0 ? item.val : '—'}
+                            </span>
                           </div>
                         ))}
                       </div>
@@ -687,7 +787,9 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                         ].map((item) => (
                           <div key={item.name} className="flex justify-between items-center text-slate-300">
                             <span>{item.name}</span>
-                            <span className="font-mono font-bold text-emerald-300">{item.val ?? '—'}</span>
+                            <span className="font-mono font-bold text-emerald-300">
+                              {item.val && item.val > 0 ? item.val : '—'}
+                            </span>
                           </div>
                         ))}
                       </div>
@@ -852,47 +954,172 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
       {/* TAB 6: FREEFORM NOTES & AUDIT HISTORY */}
       {activeTab === 'history' && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-              Scouting Notebook & Observations
-            </h3>
-            <button
-              onClick={() => setIsAddingNote(!isAddingNote)}
-              className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold rounded-md text-xs transition-colors flex items-center gap-1.5"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>{isAddingNote ? 'Cancel' : 'Write Freeform Note'}</span>
-            </button>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+                Scouting Notebook & Observations
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Rich text scouting logs with quick templates, markdown tools, and automatic SQLite persistence.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              {autosaveIndicator && (
+                <span className="text-[11px] font-mono text-amber-400 flex items-center gap-1 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
+                  <Check className="w-3 h-3" />
+                  {autosaveIndicator}
+                </span>
+              )}
+              <button
+                onClick={() => setIsAddingNote(!isAddingNote)}
+                className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold rounded-md text-xs transition-colors flex items-center gap-1.5 shadow-sm"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>{isAddingNote ? 'Cancel' : 'Write Freeform Note'}</span>
+              </button>
+            </div>
           </div>
 
-          {/* New Note Form */}
+          {/* New Note Form with Rich Text Capabilities */}
           {isAddingNote && (
-            <form onSubmit={handleSaveNote} className="bg-[#111827] border border-amber-500/40 rounded-lg p-5 space-y-4">
-              <h4 className="text-xs font-bold uppercase text-amber-400">Add Scouting Observation</h4>
-              <div>
-                <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
-                  Note Title
-                </label>
-                <input
-                  type="text"
-                  value={newNoteTitle}
-                  onChange={(e) => setNewNoteTitle(e.target.value)}
-                  placeholder="e.g. Shooting Mechanics Breakdown, Lateral Speed in Switches"
-                  className="w-full bg-[#141C2E] border border-[#23314D] rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500"
-                  required
-                />
+            <form onSubmit={handleSaveNote} className="bg-[#111827] border border-amber-500/40 rounded-lg p-5 space-y-4 shadow-xl">
+              <div className="flex items-center justify-between border-b border-[#1E293B] pb-3">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-amber-400" />
+                  <h4 className="text-xs font-bold uppercase text-white tracking-wider">
+                    Add Scouting Observation
+                  </h4>
+                </div>
+                <span className="text-[10px] font-mono text-slate-400">
+                  Autosaves draft in browser · Stores in SQLite on save
+                </span>
               </div>
 
               <div>
                 <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
-                  Observation Content (Markdown supported)
+                  Note Title *
                 </label>
+                <input
+                  type="text"
+                  value={newNoteTitle}
+                  onChange={(e) => handleTitleChange(e.target.value)}
+                  placeholder="e.g. Shooting Mechanics & Footwork / Defensive Switchability"
+                  className="w-full bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                  required
+                />
+              </div>
+
+              {/* Rich Markdown Formatting Toolbar */}
+              <div className="space-y-1.5">
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-[#141C2E] border border-[#23314D] rounded-t px-2.5 py-1.5 text-xs text-slate-300">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase mr-1">Format:</span>
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('**', '**')}
+                      className="px-2 py-0.5 rounded hover:bg-[#1E2A42] hover:text-white font-bold text-[11px] border border-transparent hover:border-[#2C3E60]"
+                      title="Bold"
+                    >
+                      B
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('*', '*')}
+                      className="px-2 py-0.5 rounded hover:bg-[#1E2A42] hover:text-white italic text-[11px] border border-transparent hover:border-[#2C3E60]"
+                      title="Italic"
+                    >
+                      I
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('\n### ')}
+                      className="px-2 py-0.5 rounded hover:bg-[#1E2A42] hover:text-white font-mono text-[11px] border border-transparent hover:border-[#2C3E60]"
+                      title="Section Heading"
+                    >
+                      H3
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('\n- ')}
+                      className="px-2 py-0.5 rounded hover:bg-[#1E2A42] hover:text-white font-mono text-[11px] border border-transparent hover:border-[#2C3E60]"
+                      title="Bullet point"
+                    >
+                      • List
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('\n1. ')}
+                      className="px-2 py-0.5 rounded hover:bg-[#1E2A42] hover:text-white font-mono text-[11px] border border-transparent hover:border-[#2C3E60]"
+                      title="Numbered list"
+                    >
+                      1. List
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('\n> ')}
+                      className="px-2 py-0.5 rounded hover:bg-[#1E2A42] hover:text-white font-mono text-[11px] border border-transparent hover:border-[#2C3E60]"
+                      title="Quote observation"
+                    >
+                      “ Quote
+                    </button>
+                  </div>
+
+                  {/* Pre-built Scouting Templates */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-bold text-amber-400 uppercase">Templates:</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        insertTemplate(
+                          `### Physical Assessment\n- Frame & Length:\n- Functional Athleticism:\n- Motor & Stamina:`
+                        )
+                      }
+                      className="px-2 py-0.5 rounded bg-[#182338] hover:bg-[#20304C] text-[10px] text-slate-300 border border-[#23334F]"
+                    >
+                      Physical
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        insertTemplate(
+                          `### Offensive Skillset\n- Primary Creation:\n- Catch-and-Shoot:\n- Decision Making / PnR:`
+                        )
+                      }
+                      className="px-2 py-0.5 rounded bg-[#182338] hover:bg-[#20304C] text-[10px] text-slate-300 border border-[#23334F]"
+                    >
+                      Offense
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        insertTemplate(
+                          `### Defensive Profile\n- Point of Attack:\n- Help & Rotations:\n- Rim Protection:`
+                        )
+                      }
+                      className="px-2 py-0.5 rounded bg-[#182338] hover:bg-[#20304C] text-[10px] text-slate-300 border border-[#23334F]"
+                    >
+                      Defense
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        insertTemplate(
+                          `### NBA Outlook & Swing Skills\n- Day-1 Projected Role:\n- Long-Term Ceiling:\n- Critical Swing Skill:`
+                        )
+                      }
+                      className="px-2 py-0.5 rounded bg-[#182338] hover:bg-[#20304C] text-[10px] text-slate-300 border border-[#23334F]"
+                    >
+                      Projection
+                    </button>
+                  </div>
+                </div>
+
                 <textarea
                   value={newNoteContent}
-                  onChange={(e) => setNewNoteContent(e.target.value)}
-                  placeholder="Record your scouting impressions, tendencies, touch, motor, discipline..."
-                  rows={4}
-                  className="w-full bg-[#141C2E] border border-[#23314D] rounded p-3 text-xs text-white focus:outline-none focus:border-amber-500 leading-relaxed"
+                  onChange={(e) => handleContentChange(e.target.value)}
+                  placeholder="Record your detailed scouting impressions, tendencies, touch, motor, discipline, or click a template above..."
+                  rows={6}
+                  className="w-full bg-[#141C2E] border border-t-0 border-[#23314D] rounded-b p-3 text-xs text-white focus:outline-none focus:border-amber-500 leading-relaxed font-sans"
                   required
                 />
               </div>
@@ -905,24 +1132,24 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                   type="text"
                   value={newNoteTags}
                   onChange={(e) => setNewNoteTags(e.target.value)}
-                  placeholder="Film Study, Shooting, Draft 2027"
+                  placeholder="Film Study, Shooting, Switchability, Draft 2027"
                   className="w-full bg-[#141C2E] border border-[#23314D] rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500"
                 />
               </div>
 
-              <div className="flex justify-end gap-2">
+              <div className="flex justify-end gap-2 pt-2 border-t border-[#1E293B]">
                 <button
                   type="button"
                   onClick={() => setIsAddingNote(false)}
-                  className="px-3 py-1.5 bg-[#182337] text-slate-300 rounded text-xs"
+                  className="px-3.5 py-1.5 bg-[#182337] hover:bg-[#202F49] text-slate-300 rounded text-xs transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-xs"
+                  className="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-xs transition-colors shadow-sm"
                 >
-                  Save Note
+                  Save Note to SQLite
                 </button>
               </div>
             </form>
@@ -931,43 +1158,104 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
           {/* Notes list */}
           {playerNotes.length === 0 ? (
             <div className="p-8 text-center text-slate-400 bg-[#111827] border border-[#1E293B] rounded-lg">
-              No freeform notes written for this prospect yet. Use the button above to record your scouting thoughts.
+              No freeform notes written for this prospect yet. Use the "Write Freeform Note" button above to record your scouting thoughts.
             </div>
           ) : (
             <div className="space-y-4">
               {playerNotes.map((note) => (
                 <div key={note.id} className="bg-[#111827] border border-[#1E293B] rounded-lg p-5 space-y-3">
-                  <div className="flex items-center justify-between border-b border-[#1E293B] pb-3">
-                    <h4 className="text-xs font-bold text-white">{note.title}</h4>
-                    <div className="flex items-center gap-3">
-                      <span className="text-[10px] font-mono text-slate-400">
-                        {new Date(note.createdAt).toLocaleDateString()}
-                      </span>
-                      <button
-                        onClick={() => deleteNote(note.id)}
-                        className="text-slate-500 hover:text-rose-400 transition-colors"
-                        title="Delete note"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="text-xs text-slate-300 whitespace-pre-line leading-relaxed font-sans">
-                    {note.content}
-                  </div>
-
-                  {note.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 pt-2">
-                      {note.tags.map((t) => (
-                        <span
-                          key={t}
-                          className="text-[10px] px-2 py-0.5 rounded bg-[#172236] text-slate-400 border border-[#21304C]"
+                  {editingNoteId === note.id ? (
+                    /* Edit Note Mode */
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between border-b border-[#1E293B] pb-2">
+                        <span className="text-xs font-bold text-amber-400 uppercase">Edit Scouting Note</span>
+                        <span className="text-[10px] text-slate-400">Modifying note #{note.id}</span>
+                      </div>
+                      <input
+                        type="text"
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        className="w-full bg-[#141C2E] border border-[#23314D] rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                      />
+                      <textarea
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        rows={5}
+                        className="w-full bg-[#141C2E] border border-[#23314D] rounded p-3 text-xs text-white focus:outline-none focus:border-amber-500 leading-relaxed font-sans"
+                      />
+                      <input
+                        type="text"
+                        value={editTags}
+                        onChange={(e) => setEditTags(e.target.value)}
+                        placeholder="Tags (comma separated)"
+                        className="w-full bg-[#141C2E] border border-[#23314D] rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                      />
+                      <div className="flex justify-end gap-2 pt-2 border-t border-[#1E293B]">
+                        <button
+                          type="button"
+                          onClick={() => setEditingNoteId(null)}
+                          className="px-3 py-1 bg-[#182337] text-slate-300 rounded text-xs"
                         >
-                          #{t}
-                        </span>
-                      ))}
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSaveEditNote(note.id)}
+                          className="px-3.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-xs transition-colors flex items-center gap-1.5"
+                        >
+                          <Save className="w-3.5 h-3.5" />
+                          <span>Save Changes</span>
+                        </button>
+                      </div>
                     </div>
+                  ) : (
+                    /* Read Mode */
+                    <>
+                      <div className="flex items-center justify-between border-b border-[#1E293B] pb-3">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-xs font-bold text-white">{note.title}</h4>
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            SQLite Verified
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-[10px] font-mono text-slate-400">
+                            {new Date(note.createdAt).toLocaleDateString()}
+                          </span>
+                          <button
+                            onClick={() => handleStartEditNote(note)}
+                            className="text-slate-400 hover:text-amber-400 transition-colors p-1"
+                            title="Edit note"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => deleteNote(note.id)}
+                            className="text-slate-400 hover:text-rose-400 transition-colors p-1"
+                            title="Delete note"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="text-xs text-slate-300 whitespace-pre-line leading-relaxed font-sans">
+                        {note.content}
+                      </div>
+
+                      {note.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-2 border-t border-[#192233]">
+                          {note.tags.map((t) => (
+                            <span
+                              key={t}
+                              className="text-[10px] px-2 py-0.5 rounded bg-[#172236] text-slate-400 border border-[#21304C]"
+                            >
+                              #{t}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               ))}

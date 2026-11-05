@@ -32,10 +32,10 @@ export const SettingsView: React.FC = () => {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const content = event.target?.result as string;
       if (content) {
-        const success = importJSONBackup(content);
+        const success = await importJSONBackup(content);
         if (success) {
           setImportStatus('Database successfully restored from JSON backup!');
           setTimeout(() => setImportStatus(null), 4000);
