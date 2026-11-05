@@ -29,6 +29,7 @@ import {
   FileText
 } from 'lucide-react';
 import { useScouting, DossierTab } from '../../context/ScoutingContext';
+import { dedupeSeasonStats } from '../../lib/seasonStats';
 
 function fmtStat(value: number | null | undefined, digits = 1): string {
   if (value == null || !Number.isFinite(Number(value))) return '—';
@@ -140,7 +141,8 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
   const playerGameLogs = gameLogs.filter((g) => g.prospectId === p.id);
   const playerVideos = videos.filter((v) => v.prospectId === p.id);
   const latestReport = playerReports[0] || p.latestReport;
-  const currentStats = p.stats[0];
+  const seasonStats = dedupeSeasonStats(p.stats);
+  const currentStats = seasonStats[0];
 
   const handleStatusChange = (newStatus: ProspectStatus) => {
     updateProspect(p.id, { status: newStatus });
@@ -610,7 +612,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#182338]">
-                  {p.stats.map((s) => (
+                  {seasonStats.map((s) => (
                     <tr key={s.id} className="hover:bg-[#141D30]">
                       <td className="py-2.5 px-3 font-semibold text-white">{s.season}</td>
                       <td className="py-2.5 px-3 font-sans text-slate-300">{s.team}</td>
