@@ -9,11 +9,11 @@ import {
   ChevronDown,
   Check,
   Trophy,
-  Star,
-  FileSpreadsheet
+  Star
 } from 'lucide-react';
 import { useScouting } from '../../context/ScoutingContext';
 import { Position, ProspectStatus, LeagueCategory } from '../../types/scouting';
+import { DataSyncPanel } from '../settings/DataSyncPanel';
 
 interface PlayerDatabaseViewProps {
   onOpenNewProspectModal: () => void;
@@ -34,7 +34,7 @@ type SortField =
 export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
   onOpenNewProspectModal,
 }) => {
-  const { prospects, setSelectedProspectId, setActiveView, toggleComparisonProspect, comparisonProspectIds } = useScouting();
+  const { prospects, setSelectedProspectId, setActiveView, toggleComparisonProspect, comparisonProspectIds, refreshAllData } = useScouting();
 
   const [search, setSearch] = useState('');
   const [selectedPos, setSelectedPos] = useState<string>('ALL');
@@ -56,7 +56,13 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
   const leagues: (LeagueCategory | 'ALL')[] = [
     'ALL',
     'NCAA D1',
+    'NCAA D-II/III',
+    'Overtime Elite',
+    'International Pro',
+    'High School / Prep',
+    'G-League',
     'NBA G League',
+    'Other',
   ];
   const statuses: (ProspectStatus | 'ALL')[] = [
     'ALL',
@@ -198,7 +204,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
             </span>
           </h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            Comprehensive prospect tracking across NCAA D1 and NBA G League.
+            NCAA stats can be cached from Settings. CSV covers Overtime Elite, Europe, and high school.
           </p>
         </div>
 
@@ -273,6 +279,8 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
           </button>
         </div>
       </div>
+
+      <DataSyncPanel variant="compact" onDataChanged={refreshAllData} />
 
       {/* Filter Strip */}
       <div className="bg-[#101726] border border-[#1E293B] rounded-lg p-3.5 space-y-3">
@@ -524,7 +532,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
 
                       {/* Height & Weight */}
                       <td className="py-2.5 px-3 font-mono text-slate-300 tabular-nums">
-                        {p.measurements.heightFormatted} · {p.measurements.weightLbs} lbs
+                        {p.measurements.heightFormatted || '—'} · {p.measurements.weightLbs ? `${p.measurements.weightLbs} lbs` : '—'}
                       </td>
 
                       {/* Wingspan */}
@@ -546,7 +554,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
                         <td className="py-2.5 px-3 font-mono text-right tabular-nums text-slate-200">
                           {stat ? (
                             <span>
-                              <strong className="text-white">{stat.ppg.toFixed(1)}</strong> / {stat.rpg.toFixed(1)} / {stat.apg.toFixed(1)}
+                              <strong className="text-white">{stat.ppg == null ? '—' : stat.ppg.toFixed(1)}</strong> / {stat.rpg == null ? '—' : stat.rpg.toFixed(1)} / {stat.apg == null ? '—' : stat.apg.toFixed(1)}
                             </span>
                           ) : (
                             <span className="text-slate-400">—</span>

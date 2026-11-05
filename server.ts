@@ -1,13 +1,17 @@
+import 'dotenv/config';
 import express from 'express';
 import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import fs from 'fs';
 import Database from 'better-sqlite3';
+import { registerNcaaRoutes } from './server/ncaaProxy.ts';
+import { registerCsvRoutes } from './server/csvRoutes.ts';
 
 const app = express();
 const PORT = 3000;
 
 app.use(express.json({ limit: '25mb' }));
+app.use(express.text({ type: ['text/csv', 'text/plain'], limit: '8mb' }));
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
@@ -208,13 +212,31 @@ db.exec(`
     records_synced INTEGER,
     synced_at TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS ncaa_cache (
+    cache_key TEXT PRIMARY KEY,
+    provider TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    query TEXT,
+    external_id TEXT,
+    payload TEXT NOT NULL,
+    fetched_at TEXT NOT NULL,
+    expires_at TEXT NOT NULL
+  );
 `);
 
 // Migration safeguard for existing sqlite db
-try {
-  db.prepare('ALTER TABLE scouting_reports ADD COLUMN report_type TEXT').run();
-} catch {
-  // column already exists
+for (const statement of [
+  'ALTER TABLE scouting_reports ADD COLUMN report_type TEXT',
+  'ALTER TABLE prospects ADD COLUMN external_cbb_id TEXT',
+  'ALTER TABLE prospects ADD COLUMN external_cbd_id TEXT',
+  'ALTER TABLE prospects ADD COLUMN source_provider TEXT',
+]) {
+  try {
+    db.prepare(statement).run();
+  } catch {
+    // column already exists
+  }
 }
 
 // Phase 3 does not seed demonstration prospects. Records come only from SQLite.
@@ -265,6 +287,7 @@ function mapProspectFromDb(row: any): any {
     drtg: s.drtg,
     bpm: s.bpm,
     source: s.source,
+    bpr: s.bpr,
   }));
 
   // Fetch latest report
@@ -311,6 +334,9 @@ function mapProspectFromDb(row: any): any {
     notesCount,
     gamesObservedCount: gamesCount,
     videoCount,
+    externalCbbId: row.external_cbb_id || undefined,
+    externalCbdId: row.external_cbd_id || undefined,
+    sourceProvider: row.source_provider || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -1158,6 +1184,7 @@ app.post('/api/backups', (req, res) => {
     const restoreTransaction = db.transaction(() => {
       // Clear tables in reverse cascade order
       db.prepare('DELETE FROM sync_logs').run();
+      db.prepare('DELETE FROM ncaa_cache').run();
       db.prepare('DELETE FROM draft_boards').run();
       db.prepare('DELETE FROM video_clips').run();
       db.prepare('DELETE FROM game_logs').run();
@@ -1174,6 +1201,7 @@ app.post('/api/backups', (req, res) => {
           wingspan_inches, wingspan_formatted, standing_reach_inches, standing_reach_formatted,
           primary_position, secondary_position, current_team, current_league,
           previous_teams, class_or_year, eligibility_status, status, tags,
+          external_cbb_id, external_cbd_id, source_provider,
           created_at, updated_at
         ) VALUES (
           ?, ?, ?, ?, ?, ?, ?,
@@ -1181,6 +1209,7 @@ app.post('/api/backups', (req, res) => {
           ?, ?, ?, ?,
           ?, ?, ?, ?,
           ?, ?, ?, ?, ?,
+          ?, ?, ?,
           ?, ?
         )
       `);
@@ -1224,6 +1253,9 @@ app.post('/api/backups', (req, res) => {
           p.eligibilityStatus || '',
           p.status || 'To Observe',
           JSON.stringify(p.tags || []),
+          p.externalCbbId || null,
+          p.externalCbdId || null,
+          p.sourceProvider || null,
           p.createdAt || new Date().toISOString(),
           p.updatedAt || new Date().toISOString()
         );
@@ -1420,6 +1452,9 @@ app.post('/api/backups', (req, res) => {
   }
 });
 
+registerNcaaRoutes(app, db);
+registerCsvRoutes(app, db);
+
 // ----------------------------------------------------
 // VITE CLIENT MOUNTING & SERVER START
 // ----------------------------------------------------
@@ -1438,7 +1473,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`COURTSIDE Phase 3 Server running at http://localhost:${PORT}`);
+    console.log(`COURTSIDE Phase 4 Server running at http://localhost:${PORT}`);
   });
 }
 

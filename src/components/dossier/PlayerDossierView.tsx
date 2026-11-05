@@ -29,6 +29,16 @@ import {
   FileText
 } from 'lucide-react';
 import { useScouting, DossierTab } from '../../context/ScoutingContext';
+
+function fmtStat(value: number | null | undefined, digits = 1): string {
+  if (value == null || !Number.isFinite(Number(value))) return '—';
+  return Number(value).toFixed(digits);
+}
+
+function fmtShot(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(Number(value))) return '—';
+  return `${(Number(value) * 100).toFixed(1)}%`;
+}
 import { RadarChart, categoryRadarPoints } from '../common/RadarChart';
 import { ProspectStatus, ScoutingReport, confidenceLabel } from '../../types/scouting';
 
@@ -344,14 +354,14 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
           {currentStats ? (
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2.5">
               {[
-                { label: 'PPG', val: currentStats.ppg.toFixed(1), highlight: true },
-                { label: 'RPG', val: currentStats.rpg.toFixed(1) },
-                { label: 'APG', val: currentStats.apg.toFixed(1) },
-                { label: 'SPG', val: currentStats.spg.toFixed(1) },
-                { label: 'BPG', val: currentStats.bpg.toFixed(1) },
-                { label: 'FG%', val: `${(currentStats.fgPct * 100).toFixed(1)}%` },
-                { label: '3P%', val: `${(currentStats.fg3Pct * 100).toFixed(1)}%` },
-                { label: 'TS%', val: currentStats.tsPct ? `${(currentStats.tsPct * 100).toFixed(1)}%` : '—' },
+                { label: 'PPG', val: fmtStat(currentStats.ppg), highlight: true },
+                { label: 'RPG', val: fmtStat(currentStats.rpg) },
+                { label: 'APG', val: fmtStat(currentStats.apg) },
+                { label: 'SPG', val: fmtStat(currentStats.spg) },
+                { label: 'BPG', val: fmtStat(currentStats.bpg) },
+                { label: 'FG%', val: fmtShot(currentStats.fgPct) },
+                { label: '3P%', val: fmtShot(currentStats.fg3Pct) },
+                { label: 'TS%', val: fmtShot(currentStats.tsPct) },
               ].map((s) => (
                 <div
                   key={s.label}
@@ -606,21 +616,21 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                       <td className="py-2.5 px-3 font-sans text-slate-300">{s.team}</td>
                       <td className="py-2.5 px-3 font-sans text-slate-400">{s.league}</td>
                       <td className="py-2.5 px-2 text-right">{s.gp}</td>
-                      <td className="py-2.5 px-2 text-right">{s.mpg.toFixed(1)}</td>
-                      <td className="py-2.5 px-2 text-right font-bold text-amber-400">{s.ppg.toFixed(1)}</td>
-                      <td className="py-2.5 px-2 text-right">{s.rpg.toFixed(1)}</td>
-                      <td className="py-2.5 px-2 text-right">{s.apg.toFixed(1)}</td>
-                      <td className="py-2.5 px-2 text-right">{s.spg.toFixed(1)}</td>
-                      <td className="py-2.5 px-2 text-right">{s.bpg.toFixed(1)}</td>
-                      <td className="py-2.5 px-2 text-right text-slate-400">{s.tov.toFixed(1)}</td>
+                      <td className="py-2.5 px-2 text-right">{fmtStat(s.mpg)}</td>
+                      <td className="py-2.5 px-2 text-right font-bold text-amber-400">{fmtStat(s.ppg)}</td>
+                      <td className="py-2.5 px-2 text-right">{fmtStat(s.rpg)}</td>
+                      <td className="py-2.5 px-2 text-right">{fmtStat(s.apg)}</td>
+                      <td className="py-2.5 px-2 text-right">{fmtStat(s.spg)}</td>
+                      <td className="py-2.5 px-2 text-right">{fmtStat(s.bpg)}</td>
+                      <td className="py-2.5 px-2 text-right text-slate-400">{fmtStat(s.tov)}</td>
                       <td className="py-2.5 px-2 text-right font-semibold text-emerald-400">
-                        {(s.fgPct * 100).toFixed(1)}%
+                        {fmtShot(s.fgPct)}
                       </td>
                       <td className="py-2.5 px-2 text-right font-semibold text-sky-400">
-                        {(s.fg3Pct * 100).toFixed(1)}%
+                        {fmtShot(s.fg3Pct)}
                       </td>
                       <td className="py-2.5 px-2 text-right">
-                        {(s.ftPct * 100).toFixed(1)}%
+                        {fmtShot(s.ftPct)}
                       </td>
                     </tr>
                   ))}
@@ -637,12 +647,12 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
                 {[
-                  { label: 'TS% (True Shooting)', val: currentStats.tsPct ? `${(currentStats.tsPct * 100).toFixed(1)}%` : '—' },
-                  { label: 'eFG% (Effective FG)', val: currentStats.efgPct ? `${(currentStats.efgPct * 100).toFixed(1)}%` : '—' },
-                  { label: 'USG% (Usage Rate)', val: currentStats.usgPct ? `${currentStats.usgPct.toFixed(1)}%` : '—' },
-                  { label: 'AST% (Assist %)', val: currentStats.astPct ? `${currentStats.astPct.toFixed(1)}%` : '—' },
-                  { label: 'TRB% (Total Rebound)', val: currentStats.trbPct ? `${currentStats.trbPct.toFixed(1)}%` : '—' },
-                  { label: 'BPM (Box Plus/Minus)', val: currentStats.bpm ? `+${currentStats.bpm.toFixed(1)}` : '—' },
+                  { label: 'TS% (True Shooting)', val: fmtShot(currentStats.tsPct) },
+                  { label: 'eFG% (Effective FG)', val: fmtShot(currentStats.efgPct) },
+                  { label: 'USG% (Usage Rate)', val: currentStats.usgPct == null ? '—' : `${fmtStat(currentStats.usgPct)}%` },
+                  { label: 'AST% (Assist %)', val: currentStats.astPct == null ? '—' : `${fmtStat(currentStats.astPct)}%` },
+                  { label: 'TRB% (Total Rebound)', val: currentStats.trbPct == null ? '—' : `${fmtStat(currentStats.trbPct)}%` },
+                  { label: 'BPM (Box Plus/Minus)', val: currentStats.bpm == null ? '—' : `${currentStats.bpm > 0 ? '+' : ''}${fmtStat(currentStats.bpm)}` },
                 ].map((item) => (
                   <div key={item.label} className="p-3 bg-[#131B2D] border border-[#1F2C45] rounded-md">
                     <div className="text-[10px] uppercase font-bold text-slate-400">{item.label}</div>

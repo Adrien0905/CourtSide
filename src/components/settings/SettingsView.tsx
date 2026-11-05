@@ -2,13 +2,12 @@ import React, { useState } from 'react';
 import {
   Download,
   Upload,
-  RefreshCw,
   Database,
   ShieldCheck,
-  FileSpreadsheet,
   Check
 } from 'lucide-react';
 import { useScouting } from '../../context/ScoutingContext';
+import { DataSyncPanel } from './DataSyncPanel';
 
 export const SettingsView: React.FC = () => {
   const {
@@ -18,7 +17,7 @@ export const SettingsView: React.FC = () => {
     reports,
     draftBoard,
     gameLogs,
-    videos,
+    refreshAllData,
   } = useScouting();
 
   const [importStatus, setImportStatus] = useState<string | null>(null);
@@ -43,52 +42,6 @@ export const SettingsView: React.FC = () => {
       }
     };
     reader.readAsText(file);
-  };
-
-  // CSV Export for Prospects
-  const handleExportCSV = () => {
-    const headers = [
-      'ID',
-      'First Name',
-      'Last Name',
-      'Draft Year',
-      'Draft Age',
-      'Position',
-      'Current Team',
-      'League',
-      'Height',
-      'Weight (lbs)',
-      'Wingspan',
-      'Status',
-      'Scout Grade',
-      'Tags',
-    ];
-
-    const rows = prospects.map((p) => [
-      p.id,
-      p.firstName,
-      p.lastName,
-      p.draftYear,
-      p.draftAge,
-      p.primaryPosition,
-      `"${p.currentTeam}"`,
-      `"${p.currentLeague}"`,
-      `"${p.measurements.heightFormatted}"`,
-      p.measurements.weightLbs,
-      `"${p.measurements.wingspanFormatted || ''}"`,
-      p.status,
-      p.latestReport ? p.latestReport.overallGrade.toFixed(1) : '',
-      `"${p.tags.join(', ')}"`,
-    ]);
-
-    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `courtside_prospects_${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
   };
 
   return (
@@ -182,27 +135,7 @@ export const SettingsView: React.FC = () => {
         </div>
       </div>
 
-      {/* CSV Export & Data Portability */}
-      <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-5 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-white">
-              Export Prospects to Spreadsheet (CSV)
-            </h3>
-          </div>
-          <button
-            onClick={handleExportCSV}
-            className="px-3.5 py-1.5 bg-[#14231E] hover:bg-[#1B2F28] text-emerald-300 border border-emerald-500/30 rounded text-xs font-semibold transition-colors flex items-center gap-1.5"
-          >
-            <Download className="w-3.5 h-3.5" />
-            <span>Export CSV</span>
-          </button>
-        </div>
-        <p className="text-xs text-slate-400 leading-relaxed">
-          Generates a CSV file compatible with Microsoft Excel, Apple Numbers, and Google Sheets for offline sharing or custom statistical formulas.
-        </p>
-      </div>
+      <DataSyncPanel onDataChanged={refreshAllData} />
 
       {/* GitHub Preservation Guide */}
       <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-5 space-y-3">

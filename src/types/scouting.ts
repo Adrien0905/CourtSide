@@ -287,6 +287,10 @@ export interface Prospect {
   gamesObservedCount: number;
   videoCount: number;
 
+  externalCbbId?: string;
+  externalCbdId?: string;
+  sourceProvider?: string;
+
   createdAt: string;
   updatedAt: string;
 }
