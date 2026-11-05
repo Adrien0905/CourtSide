@@ -241,44 +241,53 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
 
             <div className="divide-y divide-[#1B2436]">
-              {reports.slice(0, 3).map((r) => {
-                const prospect = prospects.find((p) => p.id === r.prospectId);
-                return (
-                  <div
-                    key={r.id}
-                    onClick={() => prospect && handleOpenProspect(prospect.id)}
-                    className="p-5 hover:bg-[#151E31] transition-colors cursor-pointer group space-y-2"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-white group-hover:text-amber-400 transition-colors">
-                          {prospect ? `${prospect.firstName} ${prospect.lastName}` : 'Prospect Report'}
-                        </span>
-                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">
-                          {r.overallGrade.toFixed(1)} / 10
+              {reports.length === 0 ? (
+                <div className="p-6 text-center text-xs text-slate-400">
+                  <p className="font-medium text-slate-300">No scouting reports authored yet</p>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Select a prospect and click &ldquo;Create Report&rdquo; to begin subjective evaluation.
+                  </p>
+                </div>
+              ) : (
+                reports.slice(0, 3).map((r) => {
+                  const prospect = prospects.find((p) => p.id === r.prospectId);
+                  return (
+                    <div
+                      key={r.id}
+                      onClick={() => prospect && handleOpenProspect(prospect.id)}
+                      className="p-5 hover:bg-[#151E31] transition-colors cursor-pointer group space-y-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-white group-hover:text-amber-400 transition-colors">
+                            {prospect ? `${prospect.firstName} ${prospect.lastName}` : 'Prospect Report'}
+                          </span>
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">
+                            {r.overallGrade.toFixed(1)} / 10
+                          </span>
+                        </div>
+                        <span className="text-[11px] font-mono text-slate-400">
+                          {r.reportDate}
                         </span>
                       </div>
-                      <span className="text-[11px] font-mono text-slate-400">
-                        {r.reportDate}
-                      </span>
-                    </div>
 
-                    <div className="text-xs text-amber-300 font-medium">
-                      {r.nbaArchetype}
-                    </div>
+                      <div className="text-xs text-amber-300 font-medium">
+                        {r.nbaArchetype}
+                      </div>
 
-                    <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
-                      {r.executiveSummary}
-                    </p>
+                      <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                        {r.executiveSummary}
+                      </p>
 
-                    <div className="flex items-center gap-3 pt-1 text-[11px] text-slate-400">
-                      <span>Ceiling: {r.ceiling}</span>
-                      <span aria-hidden="true">·</span>
-                      <span>Comps: {r.playerComparisons.join(', ')}</span>
+                      <div className="flex items-center gap-3 pt-1 text-[11px] text-slate-400">
+                        <span>Ceiling: {r.ceiling}</span>
+                        <span aria-hidden="true">·</span>
+                        <span>Comps: {r.playerComparisons.join(', ')}</span>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
         </div>

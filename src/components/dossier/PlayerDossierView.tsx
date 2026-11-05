@@ -468,15 +468,15 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
           ) : (
             <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-8 text-center space-y-3">
               <FileSpreadsheet className="w-8 h-8 text-amber-500/50 mx-auto" />
-              <h3 className="text-sm font-bold text-white">No Scouting Report Filed Yet</h3>
+              <h3 className="text-sm font-bold text-white">Unrated / No Report Yet</h3>
               <p className="text-xs text-slate-400 max-w-md mx-auto">
-                Evaluate this prospect's physical tools, shooting, defense, and NBA archetype to generate a complete visual radar breakdown.
+                No personal scouting evaluations have been authored for this prospect. File a report to grade their physical tools, offensive/defensive traits, and establish their skill radar.
               </p>
               <button
                 onClick={onOpenNewReportModal}
                 className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-md text-xs transition-colors"
               >
-                Create Scouting Report
+                Create First Scouting Report
               </button>
             </div>
           )}
@@ -590,102 +590,118 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
             </button>
           </div>
 
-          {playerReports.map((rep) => (
-            <div key={rep.id} className="bg-[#111827] border border-[#1E293B] rounded-lg p-6 space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1E293B] pb-4">
-                <div>
-                  <h4 className="text-base font-bold text-white flex items-center gap-3">
-                    <span>{rep.gameOrEvent || 'Comprehensive Evaluation'}</span>
-                    <span className="font-mono text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                      Overall: {rep.overallGrade.toFixed(1)} / 10
-                    </span>
-                  </h4>
-                  <div className="text-xs text-slate-400 mt-1">
-                    Scouted on {rep.reportDate} · Confidence: {rep.confidence}/5
-                  </div>
-                </div>
-
-                <div className="text-right">
-                  <span className="text-xs font-medium text-amber-400">
-                    {rep.nbaArchetype}
-                  </span>
-                </div>
-              </div>
-
-              {/* Sub-skill Grids */}
-              {rep.detailedGrades && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
-                  {/* Physical & Athleticism */}
-                  <div className="p-4 rounded bg-[#131C2E] border border-[#202E49] space-y-2">
-                    <h5 className="font-bold uppercase tracking-wider text-amber-400 text-[11px] mb-2">
-                      Physical Tools & Athleticism
-                    </h5>
-                    <div className="space-y-1.5">
-                      {[
-                        { name: 'Size & Frame', val: rep.detailedGrades.size },
-                        { name: 'Wingspan & Length', val: rep.detailedGrades.wingspan },
-                        { name: 'Functional Mobility', val: rep.detailedGrades.mobility },
-                        { name: 'Strength & Balance', val: rep.detailedGrades.strength },
-                        { name: 'Explosiveness', val: rep.detailedGrades.explosiveness },
-                      ].map((item) => (
-                        <div key={item.name} className="flex justify-between items-center text-slate-300">
-                          <span>{item.name}</span>
-                          <span className="font-mono font-bold text-amber-300">{item.val ?? '—'}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Offensive Skills */}
-                  <div className="p-4 rounded bg-[#131C2E] border border-[#202E49] space-y-2">
-                    <h5 className="font-bold uppercase tracking-wider text-sky-400 text-[11px] mb-2">
-                      Offensive Skillset
-                    </h5>
-                    <div className="space-y-1.5">
-                      {[
-                        { name: '3-Point Shooting', val: rep.detailedGrades.threePointShooting },
-                        { name: 'Rim Finishing', val: rep.detailedGrades.finishing },
-                        { name: 'Shot Creation', val: rep.detailedGrades.shotCreation },
-                        { name: 'Passing & Playmaking', val: rep.detailedGrades.passing },
-                        { name: 'Decision Making', val: rep.detailedGrades.decisionMakingOffense },
-                      ].map((item) => (
-                        <div key={item.name} className="flex justify-between items-center text-slate-300">
-                          <span>{item.name}</span>
-                          <span className="font-mono font-bold text-sky-300">{item.val ?? '—'}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Defense & Basketball IQ */}
-                  <div className="p-4 rounded bg-[#131C2E] border border-[#202E49] space-y-2">
-                    <h5 className="font-bold uppercase tracking-wider text-emerald-400 text-[11px] mb-2">
-                      Defense & Basketball IQ
-                    </h5>
-                    <div className="space-y-1.5">
-                      {[
-                        { name: 'Point of Attack Defense', val: rep.detailedGrades.pointOfAttackDefense },
-                        { name: 'Rim Protection & Help', val: rep.detailedGrades.rimProtection },
-                        { name: 'Court Vision', val: rep.detailedGrades.courtVision },
-                        { name: 'Pick & Roll Reading', val: rep.detailedGrades.readingPickAndRoll },
-                        { name: 'Competitive Motor', val: rep.detailedGrades.competitiveness },
-                      ].map((item) => (
-                        <div key={item.name} className="flex justify-between items-center text-slate-300">
-                          <span>{item.name}</span>
-                          <span className="font-mono font-bold text-emerald-300">{item.val ?? '—'}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Written Summary */}
-              <div className="text-xs text-slate-300 leading-relaxed bg-[#131B2B] p-4 rounded border border-[#1F2C45]">
-                {rep.executiveSummary}
-              </div>
+          {playerReports.length === 0 ? (
+            <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-8 text-center space-y-3">
+              <FileSpreadsheet className="w-8 h-8 text-amber-500/50 mx-auto" />
+              <h4 className="text-sm font-bold text-white">Unrated / No Report Yet</h4>
+              <p className="text-xs text-slate-400 max-w-md mx-auto">
+                No subjective scouting evaluations have been authored for this prospect. Click the button below to rate their physical tools, skills, and NBA projection.
+              </p>
+              <button
+                onClick={onOpenNewReportModal}
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-md text-xs transition-colors"
+              >
+                Create First Scouting Report
+              </button>
             </div>
-          ))}
+          ) : (
+            playerReports.map((rep) => (
+              <div key={rep.id} className="bg-[#111827] border border-[#1E293B] rounded-lg p-6 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1E293B] pb-4">
+                  <div>
+                    <h4 className="text-base font-bold text-white flex items-center gap-3">
+                      <span>{rep.gameOrEvent || 'Comprehensive Evaluation'}</span>
+                      <span className="font-mono text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        Overall: {rep.overallGrade.toFixed(1)} / 10
+                      </span>
+                    </h4>
+                    <div className="text-xs text-slate-400 mt-1">
+                      Scouted on {rep.reportDate} · Confidence: {rep.confidence}/5
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <span className="text-xs font-medium text-amber-400">
+                      {rep.nbaArchetype}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Sub-skill Grids */}
+                {rep.detailedGrades && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+                    {/* Physical & Athleticism */}
+                    <div className="p-4 rounded bg-[#131C2E] border border-[#202E49] space-y-2">
+                      <h5 className="font-bold uppercase tracking-wider text-amber-400 text-[11px] mb-2">
+                        Physical Tools & Athleticism
+                      </h5>
+                      <div className="space-y-1.5">
+                        {[
+                          { name: 'Size & Frame', val: rep.detailedGrades.size },
+                          { name: 'Wingspan & Length', val: rep.detailedGrades.wingspan },
+                          { name: 'Functional Mobility', val: rep.detailedGrades.mobility },
+                          { name: 'Strength & Balance', val: rep.detailedGrades.strength },
+                          { name: 'Explosiveness', val: rep.detailedGrades.explosiveness },
+                        ].map((item) => (
+                          <div key={item.name} className="flex justify-between items-center text-slate-300">
+                            <span>{item.name}</span>
+                            <span className="font-mono font-bold text-amber-300">{item.val ?? '—'}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Offensive Skills */}
+                    <div className="p-4 rounded bg-[#131C2E] border border-[#202E49] space-y-2">
+                      <h5 className="font-bold uppercase tracking-wider text-sky-400 text-[11px] mb-2">
+                        Offensive Skillset
+                      </h5>
+                      <div className="space-y-1.5">
+                        {[
+                          { name: '3-Point Shooting', val: rep.detailedGrades.threePointShooting },
+                          { name: 'Rim Finishing', val: rep.detailedGrades.finishing },
+                          { name: 'Shot Creation', val: rep.detailedGrades.shotCreation },
+                          { name: 'Passing & Playmaking', val: rep.detailedGrades.passing },
+                          { name: 'Decision Making', val: rep.detailedGrades.decisionMakingOffense },
+                        ].map((item) => (
+                          <div key={item.name} className="flex justify-between items-center text-slate-300">
+                            <span>{item.name}</span>
+                            <span className="font-mono font-bold text-sky-300">{item.val ?? '—'}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Defense & Basketball IQ */}
+                    <div className="p-4 rounded bg-[#131C2E] border border-[#202E49] space-y-2">
+                      <h5 className="font-bold uppercase tracking-wider text-emerald-400 text-[11px] mb-2">
+                        Defense & Basketball IQ
+                      </h5>
+                      <div className="space-y-1.5">
+                        {[
+                          { name: 'Point of Attack Defense', val: rep.detailedGrades.pointOfAttackDefense },
+                          { name: 'Rim Protection & Help', val: rep.detailedGrades.rimProtection },
+                          { name: 'Court Vision', val: rep.detailedGrades.courtVision },
+                          { name: 'Pick & Roll Reading', val: rep.detailedGrades.readingPickAndRoll },
+                          { name: 'Competitive Motor', val: rep.detailedGrades.competitiveness },
+                        ].map((item) => (
+                          <div key={item.name} className="flex justify-between items-center text-slate-300">
+                            <span>{item.name}</span>
+                            <span className="font-mono font-bold text-emerald-300">{item.val ?? '—'}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Written Summary */}
+                <div className="text-xs text-slate-300 leading-relaxed bg-[#131B2B] p-4 rounded border border-[#1F2C45]">
+                  {rep.executiveSummary}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       )}
 

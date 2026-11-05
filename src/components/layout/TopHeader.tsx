@@ -106,7 +106,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onOpenNewProspectModal }) 
               setSearchOpen(true);
             }}
             onFocus={() => setSearchOpen(true)}
-            placeholder="Search prospects (e.g. Boozer, Duke, Playmaker, PF)..."
+            placeholder="Search prospects (e.g. Morgan, State, Wing, SF)..."
             className="w-full bg-[#141B2D] border border-[#23314D] rounded-md pl-9 pr-8 py-1.5 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-amber-500/80 transition-colors"
           />
           {searchTerm && (

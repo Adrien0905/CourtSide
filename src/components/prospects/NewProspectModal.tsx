@@ -16,7 +16,7 @@ export const NewProspectModal: React.FC<NewProspectModalProps> = ({ isOpen, onCl
   const [primaryPos, setPrimaryPos] = useState<Position>('SF');
   const [secondaryPos, setSecondaryPos] = useState<Position | ''>('');
   const [team, setTeam] = useState('');
-  const [league, setLeague] = useState<LeagueCategory>('NCAA D-I');
+  const [league, setLeague] = useState<LeagueCategory>('NCAA D1');
   const [birthDate, setBirthDate] = useState('2007-06-15');
   const [nationality, setNationality] = useState('USA');
   const [birthCountry, setBirthCountry] = useState('USA');
@@ -31,7 +31,7 @@ export const NewProspectModal: React.FC<NewProspectModalProps> = ({ isOpen, onCl
   const [reachInches, setReachInches] = useState(10);
 
   const [status, setStatus] = useState<ProspectStatus>('To Observe');
-  const [tagsInput, setTagsInput] = useState('Athletic Freak, High Upside');
+  const [tagsInput, setTagsInput] = useState('Perimeter Wing, Class of 2027');
 
   if (!isOpen) return null;
 
@@ -214,7 +214,7 @@ export const NewProspectModal: React.FC<NewProspectModalProps> = ({ isOpen, onCl
                 type="text"
                 value={team}
                 onChange={(e) => setTeam(e.target.value)}
-                placeholder="e.g. Kansas / Prolific Prep"
+                placeholder="e.g. Duke / Gonzaga / Ignite"
                 required
                 className="w-full bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white focus:outline-none focus:border-amber-500"
               />
@@ -228,13 +228,8 @@ export const NewProspectModal: React.FC<NewProspectModalProps> = ({ isOpen, onCl
                 onChange={(e) => setLeague(e.target.value as LeagueCategory)}
                 className="w-full bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white focus:outline-none focus:border-amber-500 cursor-pointer"
               >
-                <option value="NCAA D-I">NCAA D-I</option>
-                <option value="High School / Prep">High School / Prep</option>
-                <option value="Overtime Elite">Overtime Elite</option>
-                <option value="G-League">G-League</option>
-                <option value="International Pro">International Pro (EuroLeague, ACB, NBL...)</option>
-                <option value="NCAA D-II/III">NCAA D-II / D-III</option>
-                <option value="Other">Other Pathway</option>
+                <option value="NCAA D1">NCAA D1 (Division I)</option>
+                <option value="NBA G League">NBA G League</option>
               </select>
             </div>
           </div>

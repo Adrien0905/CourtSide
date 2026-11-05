@@ -12,10 +12,6 @@ import {
 } from '../types/scouting';
 import {
   SAMPLE_PROSPECT,
-  SAMPLE_REPORT,
-  SAMPLE_NOTE,
-  SAMPLE_GAME_LOG,
-  SAMPLE_VIDEO,
   INITIAL_DRAFT_BOARD
 } from '../data/sampleProspect';
 
@@ -77,21 +73,21 @@ interface ScoutingContextType {
 const ScoutingContext = createContext<ScoutingContextType | undefined>(undefined);
 
 const STORAGE_KEYS = {
-  PROSPECTS: 'courtside_prospects_v1',
-  REPORTS: 'courtside_reports_v1',
-  NOTES: 'courtside_notes_v1',
-  GAME_LOGS: 'courtside_game_logs_v1',
-  VIDEOS: 'courtside_videos_v1',
-  DRAFT_BOARD: 'courtside_draft_board_v1',
+  PROSPECTS: 'courtside_prospects_v2',
+  REPORTS: 'courtside_reports_v2',
+  NOTES: 'courtside_notes_v2',
+  GAME_LOGS: 'courtside_game_logs_v2',
+  VIDEOS: 'courtside_videos_v2',
+  DRAFT_BOARD: 'courtside_draft_board_v2',
 };
 
 export const ScoutingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeView, setActiveView] = useState<ActiveView>('dashboard');
-  const [selectedProspectId, setSelectedProspectId] = useState<string | null>('prospect-sample-cameron-boozer');
+  const [selectedProspectId, setSelectedProspectId] = useState<string | null>(SAMPLE_PROSPECT.id);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [comparisonProspectIds, setComparisonProspectIds] = useState<string[]>(['prospect-sample-cameron-boozer']);
+  const [comparisonProspectIds, setComparisonProspectIds] = useState<string[]>([SAMPLE_PROSPECT.id]);
 
-  // Load state with fallback to template benchmark
+  // Load state with fallback to clean fictional template benchmark
   const [prospects, setProspects] = useState<Prospect[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.PROSPECTS);
@@ -104,36 +100,36 @@ export const ScoutingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [reports, setReports] = useState<ScoutingReport[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.REPORTS);
-      return saved ? JSON.parse(saved) : [SAMPLE_REPORT];
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return [SAMPLE_REPORT];
+      return [];
     }
   });
 
   const [notes, setNotes] = useState<FreeformNote[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.NOTES);
-      return saved ? JSON.parse(saved) : [SAMPLE_NOTE];
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return [SAMPLE_NOTE];
+      return [];
     }
   });
 
   const [gameLogs, setGameLogs] = useState<GameLogItem[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.GAME_LOGS);
-      return saved ? JSON.parse(saved) : [SAMPLE_GAME_LOG];
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return [SAMPLE_GAME_LOG];
+      return [];
     }
   });
 
   const [videos, setVideos] = useState<VideoClip[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.VIDEOS);
-      return saved ? JSON.parse(saved) : [SAMPLE_VIDEO];
+      return saved ? JSON.parse(saved) : [];
     } catch {
-      return [SAMPLE_VIDEO];
+      return [];
     }
   });
 
@@ -453,10 +449,10 @@ export const ScoutingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Reset to Sample Template
   const resetToSampleData = () => {
     setProspects([SAMPLE_PROSPECT]);
-    setReports([SAMPLE_REPORT]);
-    setNotes([SAMPLE_NOTE]);
-    setGameLogs([SAMPLE_GAME_LOG]);
-    setVideos([SAMPLE_VIDEO]);
+    setReports([]);
+    setNotes([]);
+    setGameLogs([]);
+    setVideos([]);
     setDraftBoard(INITIAL_DRAFT_BOARD);
     setSelectedProspectId(SAMPLE_PROSPECT.id);
   };

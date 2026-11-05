@@ -108,8 +108,8 @@ export const PlayerComparisonView: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Radar Overlay Comparison if at least 2 prospects */}
-          {p1 && p2 && (
+          {/* Radar Overlay Comparison if at least 2 prospects and at least one has an authored report */}
+          {p1 && p2 && (p1.latestReport || p2.latestReport) && (
             <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-6 flex flex-col items-center justify-center space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 self-start">
                 Comparative Skill Radar Overlay

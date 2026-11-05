@@ -14,6 +14,8 @@ export type ProspectStatus =
   | 'Cut';
 
 export type LeagueCategory =
+  | 'NCAA D1'
+  | 'NBA G League'
   | 'NCAA D-I'
   | 'NCAA D-II/III'
   | 'G-League'

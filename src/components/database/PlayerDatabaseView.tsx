@@ -54,12 +54,8 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
   const positions: (Position | 'ALL')[] = ['ALL', 'PG', 'SG', 'SF', 'PF', 'C'];
   const leagues: (LeagueCategory | 'ALL')[] = [
     'ALL',
-    'High School / Prep',
-    'NCAA D-I',
-    'Overtime Elite',
-    'G-League',
-    'International Pro',
-    'Other',
+    'NCAA D1',
+    'NBA G League',
   ];
   const statuses: (ProspectStatus | 'ALL')[] = [
     'ALL',
@@ -189,7 +185,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
             </span>
           </h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            Comprehensive prospect tracking across NCAA, High School, G-League, and International leagues.
+            Comprehensive prospect tracking across NCAA D1 and NBA G League.
           </p>
         </div>
 
