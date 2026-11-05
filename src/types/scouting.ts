@@ -144,6 +144,22 @@ export interface DetailedGrades {
   coachability?: number;
 }
 
+export type ConfidenceLevel = 1 | 2 | 3 | 4;
+
+export const CONFIDENCE_OPTIONS: { value: ConfidenceLevel; label: string }[] = [
+  { value: 1, label: '1 - Initial Impression (Highlights / Quick cutups)' },
+  { value: 2, label: '2 - Single Game (Full film / Showcase)' },
+  { value: 3, label: '3 - Multi-Game (Multiple full films)' },
+  { value: 4, label: '4 - Deep Evaluation (Live + Full film)' },
+];
+
+export function confidenceLabel(level: number | undefined): string {
+  const match = CONFIDENCE_OPTIONS.find((option) => option.value === level);
+  if (match) return match.label;
+  if (level !== undefined && level >= 5) return CONFIDENCE_OPTIONS[3].label;
+  return 'Unrated';
+}
+
 export interface ScoutingReport {
   id: string;
   prospectId: string;
@@ -154,7 +170,7 @@ export interface ScoutingReport {
   competition?: string;
   opponent?: string;
   minutesObserved?: number;
-  confidence: 1 | 2 | 3 | 4 | 5; // 1 (Low) to 5 (Very High)
+  confidence: ConfidenceLevel;
 
   categoryGrades: CategoryGrades;
   detailedGrades?: DetailedGrades;

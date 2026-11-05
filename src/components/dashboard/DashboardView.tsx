@@ -30,6 +30,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     videos,
     setSelectedProspectId,
     setActiveView,
+    openProspect,
   } = useScouting();
 
   const unevaluatedCount = prospects.filter(
@@ -232,7 +233,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </h2>
               </div>
               <button
-                onClick={() => setActiveView('reports')}
+                onClick={() => {
+                  const latest = reports[0];
+                  if (latest) openProspect(latest.prospectId, 'scouting');
+                }}
                 className="text-xs text-amber-400 hover:text-amber-300 font-medium flex items-center gap-1 transition-colors"
               >
                 <span>All Reports ({reports.length})</span>

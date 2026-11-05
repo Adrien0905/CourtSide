@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import {
   Prospect,
   ScoutingReport,
@@ -6,14 +6,7 @@ import {
   GameLogItem,
   VideoClip,
   DraftBoardEntry,
-  Position,
-  ProspectStatus,
-  LeagueCategory
 } from '../types/scouting';
-import {
-  SAMPLE_PROSPECT,
-  INITIAL_DRAFT_BOARD
-} from '../data/sampleProspect';
 
 export type ActiveView =
   | 'dashboard'
@@ -25,6 +18,8 @@ export type ActiveView =
   | 'draftboard'
   | 'comparison'
   | 'settings';
+
+export type DossierTab = 'overview' | 'statistics' | 'scouting' | 'gamelog' | 'video' | 'history';
 
 interface ScoutingContextType {
   // Navigation & Active items
@@ -46,8 +41,15 @@ interface ScoutingContextType {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
 
+  // Dossier sub-tab (reports, game log, and video live here)
+  dossierFocus: DossierTab;
+  setDossierFocus: (tab: DossierTab) => void;
+  openProspect: (id: string, tab?: DossierTab) => void;
+
   // Status & Sync
   isSyncing: boolean;
+  hasLoaded: boolean;
+  loadError: string | null;
   refreshAllData: () => Promise<void>;
 
   // Actions
@@ -61,6 +63,7 @@ interface ScoutingContextType {
   addGameLog: (log: Omit<GameLogItem, 'id'>) => Promise<void>;
   addVideoClip: (video: Omit<VideoClip, 'id' | 'createdAt'>) => Promise<void>;
   updateDraftBoardRank: (prospectId: string, targetRank: number, targetTier: number, justification?: string) => Promise<void>;
+  replaceDraftBoard: (entries: DraftBoardEntry[]) => Promise<void>;
   removeDraftBoardEntry: (prospectId: string) => Promise<void>;
 
   // Comparison
@@ -71,86 +74,49 @@ interface ScoutingContextType {
   // Data management
   exportJSONBackup: () => Promise<string | null>;
   importJSONBackup: (jsonData: string) => Promise<boolean>;
-  resetToSampleData: () => Promise<void>;
 }
 
 const ScoutingContext = createContext<ScoutingContextType | undefined>(undefined);
 
-const STORAGE_KEYS = {
-  PROSPECTS: 'courtside_prospects_v2',
-  REPORTS: 'courtside_reports_v2',
-  NOTES: 'courtside_notes_v2',
-  GAME_LOGS: 'courtside_game_logs_v2',
-  VIDEOS: 'courtside_videos_v2',
-  DRAFT_BOARD: 'courtside_draft_board_v2',
-};
+function stripBrowserCache() {
+  try {
+    const keys: string[] = [];
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('courtside_')) keys.push(key);
+    }
+    keys.forEach((key) => localStorage.removeItem(key));
+  } catch {
+    // Private mode or blocked storage: nothing is persisted either way.
+  }
+}
 
 export const ScoutingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeView, setActiveView] = useState<ActiveView>('dashboard');
-  const [selectedProspectId, setSelectedProspectId] = useState<string | null>(SAMPLE_PROSPECT.id);
+  const [selectedProspectId, setSelectedProspectId] = useState<string | null>(null);
+  const [dossierFocus, setDossierFocus] = useState<DossierTab>('overview');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [comparisonProspectIds, setComparisonProspectIds] = useState<string[]>([SAMPLE_PROSPECT.id]);
+  const [comparisonProspectIds, setComparisonProspectIds] = useState<string[]>([]);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Initialize with fallback to local storage or template
-  const [prospects, setProspects] = useState<Prospect[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.PROSPECTS);
-      return saved ? JSON.parse(saved) : [SAMPLE_PROSPECT];
-    } catch {
-      return [SAMPLE_PROSPECT];
-    }
-  });
+  const [prospects, setProspects] = useState<Prospect[]>([]);
+  const [reports, setReports] = useState<ScoutingReport[]>([]);
+  const [notes, setNotes] = useState<FreeformNote[]>([]);
+  const [gameLogs, setGameLogs] = useState<GameLogItem[]>([]);
+  const [videos, setVideos] = useState<VideoClip[]>([]);
+  const [draftBoard, setDraftBoard] = useState<DraftBoardEntry[]>([]);
 
-  const [reports, setReports] = useState<ScoutingReport[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.REPORTS);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const draftBoardRef = useRef<DraftBoardEntry[]>([]);
+  useEffect(() => {
+    draftBoardRef.current = draftBoard;
+  }, [draftBoard]);
 
-  const [notes, setNotes] = useState<FreeformNote[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.NOTES);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  const [gameLogs, setGameLogs] = useState<GameLogItem[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.GAME_LOGS);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  const [videos, setVideos] = useState<VideoClip[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.VIDEOS);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  const [draftBoard, setDraftBoard] = useState<DraftBoardEntry[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.DRAFT_BOARD);
-      return saved ? JSON.parse(saved) : INITIAL_DRAFT_BOARD;
-    } catch {
-      return INITIAL_DRAFT_BOARD;
-    }
-  });
-
-  // Fetch all data from SQLite server on mount
   const refreshAllData = useCallback(async () => {
     try {
       setIsSyncing(true);
+      setLoadError(null);
       const [pRes, rRes, nRes, gRes, vRes, bRes] = await Promise.all([
         fetch('/api/prospects'),
         fetch('/api/reports'),
@@ -160,77 +126,51 @@ export const ScoutingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         fetch('/api/draftboard'),
       ]);
 
-      if (pRes.ok) {
-        const pData = await pRes.json();
-        if (Array.isArray(pData) && pData.length > 0) {
-          setProspects(pData);
-          if (!selectedProspectId || !pData.some((p: any) => p.id === selectedProspectId)) {
-            setSelectedProspectId(pData[0].id);
-          }
-        }
+      if (!pRes.ok || !rRes.ok || !nRes.ok || !gRes.ok || !vRes.ok || !bRes.ok) {
+        throw new Error('SQLite API returned an error');
       }
 
-      if (rRes.ok) {
-        const rData = await rRes.json();
-        if (Array.isArray(rData)) setReports(rData);
-      }
+      const [pData, rData, nData, gData, vData, bData] = await Promise.all([
+        pRes.json(),
+        rRes.json(),
+        nRes.json(),
+        gRes.json(),
+        vRes.json(),
+        bRes.json(),
+      ]);
 
-      if (nRes.ok) {
-        const nData = await nRes.json();
-        if (Array.isArray(nData)) setNotes(nData);
-      }
-
-      if (gRes.ok) {
-        const gData = await gRes.json();
-        if (Array.isArray(gData)) setGameLogs(gData);
-      }
-
-      if (vRes.ok) {
-        const vData = await vRes.json();
-        if (Array.isArray(vData)) setVideos(vData);
-      }
-
-      if (bRes.ok) {
-        const bData = await bRes.json();
-        if (Array.isArray(bData)) setDraftBoard(bData);
-      }
+      const nextProspects: Prospect[] = Array.isArray(pData) ? pData : [];
+      setProspects(nextProspects);
+      setReports(Array.isArray(rData) ? rData : []);
+      setNotes(Array.isArray(nData) ? nData : []);
+      setGameLogs(Array.isArray(gData) ? gData : []);
+      setVideos(Array.isArray(vData) ? vData : []);
+      setDraftBoard(Array.isArray(bData) ? bData : []);
+      setSelectedProspectId((current) => {
+        if (current && nextProspects.some((prospect) => prospect.id === current)) return current;
+        return nextProspects[0]?.id ?? null;
+      });
     } catch (err) {
-      console.warn('Backend SQLite sync error, retaining local state:', err);
+      console.error('SQLite load failed', err);
+      setLoadError('Impossible de lire la base SQLite locale.');
     } finally {
       setIsSyncing(false);
+      setHasLoaded(true);
     }
-  }, [selectedProspectId]);
+  }, []);
 
   useEffect(() => {
+    stripBrowserCache();
     refreshAllData();
   }, [refreshAllData]);
 
-  // Keep local storage synced as resilient offline backup cache
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.PROSPECTS, JSON.stringify(prospects));
-  }, [prospects]);
+  const activeProspect = prospects.find((p) => p.id === selectedProspectId) || null;
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(reports));
-  }, [reports]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(notes));
-  }, [notes]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.GAME_LOGS, JSON.stringify(gameLogs));
-  }, [gameLogs]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.VIDEOS, JSON.stringify(videos));
-  }, [videos]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.DRAFT_BOARD, JSON.stringify(draftBoard));
-  }, [draftBoard]);
-
-  const activeProspect = prospects.find((p) => p.id === selectedProspectId) || prospects[0] || null;
+  const openProspect = (id: string, tab: DossierTab = 'overview') => {
+    setSelectedProspectId(id);
+    setDossierFocus(tab);
+    setActiveView('dossier');
+  };
 
   // Add Prospect via SQLite API
   const addProspect = async (newProspectData: Omit<Prospect, 'id' | 'createdAt' | 'updatedAt' | 'reportsCount' | 'notesCount' | 'gamesObservedCount' | 'videoCount' | 'stats'>) => {
@@ -470,7 +410,37 @@ export const ScoutingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  // Draft Board Reordering via SQLite API
+  const persistDraftBoard = async (entries: DraftBoardEntry[]) => {
+    const normalized = entries.map((item, idx) => ({
+      prospectId: item.prospectId,
+      rank: idx + 1,
+      tier: item.tier,
+      justification: item.justification || '',
+      previousRank: item.previousRank,
+      updatedAt: item.updatedAt || new Date().toISOString(),
+    }));
+    setDraftBoard(normalized);
+    const res = await fetch('/api/draftboard', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entries: normalized }),
+    });
+    if (!res.ok) {
+      throw new Error('Draft board save failed');
+    }
+    const saved = await res.json();
+    if (Array.isArray(saved)) setDraftBoard(saved);
+  };
+
+  const replaceDraftBoard = async (entries: DraftBoardEntry[]) => {
+    try {
+      await persistDraftBoard(entries);
+    } catch (err) {
+      console.error('Could not update draft board on SQLite API:', err);
+      await refreshAllData();
+    }
+  };
+
   const updateDraftBoardRank = async (
     prospectId: string,
     targetRank: number,
@@ -478,41 +448,24 @@ export const ScoutingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     justification?: string
   ) => {
     const now = new Date().toISOString();
-    let reordered: DraftBoardEntry[] = [];
+    const prev = draftBoardRef.current;
+    const existing = prev.find((entry) => entry.prospectId === prospectId);
+    const filtered = prev
+      .filter((entry) => entry.prospectId !== prospectId)
+      .sort((a, b) => a.rank - b.rank);
 
-    setDraftBoard((prev) => {
-      const existing = prev.find((e) => e.prospectId === prospectId);
-      const filtered = prev.filter((e) => e.prospectId !== prospectId);
+    const entry: DraftBoardEntry = {
+      prospectId,
+      rank: targetRank,
+      tier: targetTier,
+      justification: justification ?? existing?.justification ?? '',
+      previousRank: existing ? existing.rank : undefined,
+      updatedAt: now,
+    };
 
-      const entry: DraftBoardEntry = {
-        prospectId,
-        rank: targetRank,
-        tier: targetTier,
-        justification: justification || existing?.justification || '',
-        previousRank: existing ? existing.rank : undefined,
-        updatedAt: now,
-      };
-
-      const clampedIndex = Math.max(0, Math.min(targetRank - 1, filtered.length));
-      filtered.splice(clampedIndex, 0, entry);
-
-      reordered = filtered.map((item, idx) => ({
-        ...item,
-        rank: idx + 1,
-      }));
-
-      return reordered;
-    });
-
-    try {
-      await fetch('/api/draftboard', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entries: reordered }),
-      });
-    } catch (err) {
-      console.warn('Could not update draft board on SQLite API:', err);
-    }
+    const clampedIndex = Math.max(0, Math.min(targetRank - 1, filtered.length));
+    filtered.splice(clampedIndex, 0, entry);
+    await replaceDraftBoard(filtered);
   };
 
   const removeDraftBoardEntry = async (prospectId: string) => {
@@ -534,8 +487,8 @@ export const ScoutingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (prev.includes(id)) {
         return prev.filter((pId) => pId !== id);
       }
-      if (prev.length >= 4) {
-        return [...prev.slice(1), id];
+      if (prev.length >= 2) {
+        return [prev[0], id];
       }
       return [...prev, id];
     });
@@ -640,39 +593,6 @@ export const ScoutingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  // Reset to Sample Template in SQLite
-  const resetToSampleData = async () => {
-    const resetPayload = {
-      version: '2.0',
-      exportedAt: new Date().toISOString(),
-      appName: 'COURTSIDE NBA Scouting Database',
-      targetDraftYear: 2027,
-      prospects: [SAMPLE_PROSPECT],
-      reports: [],
-      notes: [],
-      gameLogs: [],
-      videos: [],
-      draftBoard: INITIAL_DRAFT_BOARD,
-    };
-
-    try {
-      await fetch('/api/backups', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(resetPayload),
-      });
-      await refreshAllData();
-    } catch {
-      setProspects([SAMPLE_PROSPECT]);
-      setReports([]);
-      setNotes([]);
-      setGameLogs([]);
-      setVideos([]);
-      setDraftBoard(INITIAL_DRAFT_BOARD);
-      setSelectedProspectId(SAMPLE_PROSPECT.id);
-    }
-  };
-
   return (
     <ScoutingContext.Provider
       value={{
@@ -689,7 +609,12 @@ export const ScoutingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         draftBoard,
         searchQuery,
         setSearchQuery,
+        dossierFocus,
+        setDossierFocus,
+        openProspect,
         isSyncing,
+        hasLoaded,
+        loadError,
         refreshAllData,
         addProspect,
         updateProspect,
@@ -701,13 +626,13 @@ export const ScoutingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         addGameLog,
         addVideoClip,
         updateDraftBoardRank,
+        replaceDraftBoard,
         removeDraftBoardEntry,
         comparisonProspectIds,
         toggleComparisonProspect,
         clearComparison,
         exportJSONBackup,
         importJSONBackup,
-        resetToSampleData,
       }}
     >
       {children}

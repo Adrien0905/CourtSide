@@ -40,6 +40,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
   const [selectedPos, setSelectedPos] = useState<string>('ALL');
   const [selectedLeague, setSelectedLeague] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
+  const [gradeRange, setGradeRange] = useState<'ALL' | 'ELITE' | 'ABOVE' | 'MID' | 'UNRATED'>('ALL');
   const [sortField, setSortField] = useState<SortField>('grade');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [isCompact, setIsCompact] = useState(false);
@@ -83,12 +84,23 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
           p.secondaryPosition === selectedPos;
 
         const matchesLeague =
-          selectedLeague === 'ALL' || p.currentLeague === selectedLeague;
+          selectedLeague === 'ALL' ||
+          (selectedLeague === 'NCAA D1' && (p.currentLeague === 'NCAA D1' || p.currentLeague === 'NCAA D-I')) ||
+          (selectedLeague === 'NBA G League' && (p.currentLeague === 'NBA G League' || p.currentLeague === 'G-League')) ||
+          p.currentLeague === selectedLeague;
+
+        const grade = p.latestReport?.overallGrade;
+        const matchesGrade =
+          gradeRange === 'ALL' ||
+          (gradeRange === 'UNRATED' && (grade === undefined || grade <= 0)) ||
+          (gradeRange === 'ELITE' && grade !== undefined && grade >= 8) ||
+          (gradeRange === 'ABOVE' && grade !== undefined && grade >= 6 && grade < 8) ||
+          (gradeRange === 'MID' && grade !== undefined && grade > 0 && grade < 6);
 
         const matchesStatus =
           selectedStatus === 'ALL' || p.status === selectedStatus;
 
-        return matchesSearch && matchesPos && matchesLeague && matchesStatus;
+        return matchesSearch && matchesPos && matchesLeague && matchesStatus && matchesGrade;
       })
       .sort((a, b) => {
         let aVal: any = 0;
@@ -155,6 +167,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
     selectedPos,
     selectedLeague,
     selectedStatus,
+    gradeRange,
     sortField,
     sortDirection,
   ]);
@@ -263,7 +276,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
 
       {/* Filter Strip */}
       <div className="bg-[#101726] border border-[#1E293B] rounded-lg p-3.5 space-y-3">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
           {/* Search bar */}
           <div className="relative">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
@@ -289,6 +302,21 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
                   {lg}
                 </option>
               ))}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-1.5 bg-[#141C2E] border border-[#23314D] rounded-md px-2.5 py-1">
+            <span className="text-[11px] text-slate-500 shrink-0">Grade:</span>
+            <select
+              value={gradeRange}
+              onChange={(e) => setGradeRange(e.target.value as typeof gradeRange)}
+              className="bg-transparent text-xs text-slate-200 focus:outline-none w-full cursor-pointer"
+            >
+              <option value="ALL" className="bg-[#141C2E]">All grades</option>
+              <option value="ELITE" className="bg-[#141C2E]">8.0 – 10</option>
+              <option value="ABOVE" className="bg-[#141C2E]">6.0 – 7.9</option>
+              <option value="MID" className="bg-[#141C2E]">1.0 – 5.9</option>
+              <option value="UNRATED" className="bg-[#141C2E]">Unrated</option>
             </select>
           </div>
 

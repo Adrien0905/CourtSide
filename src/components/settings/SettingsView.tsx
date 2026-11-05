@@ -6,8 +6,7 @@ import {
   Database,
   ShieldCheck,
   FileSpreadsheet,
-  Check,
-  AlertTriangle
+  Check
 } from 'lucide-react';
 import { useScouting } from '../../context/ScoutingContext';
 
@@ -15,7 +14,6 @@ export const SettingsView: React.FC = () => {
   const {
     exportJSONBackup,
     importJSONBackup,
-    resetToSampleData,
     prospects,
     reports,
     draftBoard,
@@ -24,7 +22,6 @@ export const SettingsView: React.FC = () => {
   } = useScouting();
 
   const [importStatus, setImportStatus] = useState<string | null>(null);
-  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
   // File upload handler for JSON backup
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -228,47 +225,6 @@ export const SettingsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Reset to Sample Template */}
-      <div className="bg-[#111827] border border-rose-950/40 rounded-lg p-5 space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
-              <AlertTriangle className="w-4 h-4" />
-              <span>Reset to Sample Template</span>
-            </h3>
-            <p className="text-xs text-slate-400 mt-1">
-              Reset your workspace back to the initial sample prospect template benchmark.
-            </p>
-          </div>
-
-          {resetConfirmOpen ? (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setResetConfirmOpen(false)}
-                className="px-3 py-1.5 bg-[#172235] text-slate-300 rounded text-xs"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  resetToSampleData();
-                  setResetConfirmOpen(false);
-                }}
-                className="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded text-xs"
-              >
-                Confirm Reset
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setResetConfirmOpen(true)}
-              className="px-3 py-1.5 bg-rose-950/40 hover:bg-rose-950/70 border border-rose-800/40 text-rose-300 rounded text-xs font-medium"
-            >
-              Reset Data
-            </button>
-          )}
-        </div>
-      </div>
     </div>
   );
 };

@@ -25,31 +25,37 @@ export const PlayerComparisonView: React.FC = () => {
   const p1 = selectedProspects[0];
   const p2 = selectedProspects[1];
 
-  const p1Radar = p1?.latestReport
-    ? [
-        { axis: 'Physical', value: p1.latestReport.categoryGrades.physical },
-        { axis: 'Offense', value: p1.latestReport.categoryGrades.offensive },
-        { axis: 'Defense', value: p1.latestReport.categoryGrades.defensive },
-        { axis: 'B-Ball IQ', value: p1.latestReport.categoryGrades.basketballIq },
-        { axis: 'Mentality', value: p1.latestReport.categoryGrades.mentality },
-      ]
-    : [
-        { axis: 'Physical', value: 5 },
-        { axis: 'Offense', value: 5 },
-        { axis: 'Defense', value: 5 },
-        { axis: 'B-Ball IQ', value: 5 },
-        { axis: 'Mentality', value: 5 },
-      ];
+  const toRadar = (prospect: typeof p1) =>
+    prospect?.latestReport
+      ? [
+          { axis: 'Physical', value: prospect.latestReport.categoryGrades.physical },
+          { axis: 'Offense', value: prospect.latestReport.categoryGrades.offensive },
+          { axis: 'Defense', value: prospect.latestReport.categoryGrades.defensive },
+          { axis: 'B-Ball IQ', value: prospect.latestReport.categoryGrades.basketballIq },
+          { axis: 'Mentality', value: prospect.latestReport.categoryGrades.mentality },
+        ]
+      : undefined;
 
-  const p2Radar = p2?.latestReport
-    ? [
-        { axis: 'Physical', value: p2.latestReport.categoryGrades.physical },
-        { axis: 'Offense', value: p2.latestReport.categoryGrades.offensive },
-        { axis: 'Defense', value: p2.latestReport.categoryGrades.defensive },
-        { axis: 'B-Ball IQ', value: p2.latestReport.categoryGrades.basketballIq },
-        { axis: 'Mentality', value: p2.latestReport.categoryGrades.mentality },
-      ]
-    : undefined;
+  const p1Radar = toRadar(p1);
+  const p2Radar = toRadar(p2);
+  const overlayPrimary = p1Radar || p2Radar;
+  const overlayComparison = p1Radar && p2Radar ? p2Radar : undefined;
+
+  const otherOf = (index: number, read: (prospect: (typeof selectedProspects)[number]) => number | undefined) => {
+    const other = selectedProspects[index === 0 ? 1 : 0];
+    return other ? read(other) : undefined;
+  };
+
+  const leadClass = (value?: number, other?: number) => {
+    if (value === undefined || other === undefined || value === other) return 'text-slate-200';
+    return value > other ? 'text-emerald-400 font-bold' : 'text-rose-300';
+  };
+
+  const deltaLabel = (value?: number, other?: number) => {
+    if (value === undefined || other === undefined || value === other) return '';
+    const gap = value - other;
+    return ` ${gap > 0 ? '+' : ''}${gap.toFixed(1)}`;
+  };
 
   return (
     <div className="p-8 space-y-6 max-w-7xl mx-auto">
@@ -79,7 +85,7 @@ export const PlayerComparisonView: React.FC = () => {
       {/* Selector pills */}
       <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-3.5 flex flex-wrap items-center gap-2">
         <span className="text-xs font-semibold text-slate-400 mr-2">
-          Add to matrix (max 4):
+          Select 2 prospects:
         </span>
         {availableProspectsToAdd.length === 0 ? (
           <span className="text-xs text-slate-500">All available prospects selected.</span>
@@ -103,23 +109,23 @@ export const PlayerComparisonView: React.FC = () => {
           <GitCompare className="w-8 h-8 text-sky-500/40 mx-auto mb-2" />
           <p className="text-sm font-medium">Matrix is empty</p>
           <p className="text-xs text-slate-400 mt-1">
-            Select 2 to 4 prospects from the pills above or the Player Database to compare them.
+            Select two prospects to compare physicals, production, and personal scouting grades.
           </p>
         </div>
       ) : (
         <div className="space-y-6">
           {/* Radar Overlay Comparison if at least 2 prospects and at least one has an authored report */}
-          {p1 && p2 && (p1.latestReport || p2.latestReport) && (
+          {p1 && p2 && overlayPrimary && (
             <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-6 flex flex-col items-center justify-center space-y-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 self-start">
                 Comparative Skill Radar Overlay
               </h3>
               <RadarChart
-                data={p1Radar}
-                comparisonData={p2Radar}
-                primaryLabel={`${p1.firstName} ${p1.lastName}`}
-                comparisonLabel={`${p2.firstName} ${p2.lastName}`}
-                size={300}
+                data={overlayPrimary}
+                comparisonData={overlayComparison}
+                primaryLabel={p1Radar ? `${p1.firstName} ${p1.lastName}` : `${p2.firstName} ${p2.lastName}`}
+                comparisonLabel={p2 ? `${p2.firstName} ${p2.lastName}` : 'Comparison'}
+                size={320}
               />
             </div>
           )}
@@ -207,54 +213,33 @@ export const PlayerComparisonView: React.FC = () => {
                     Scout Grades (1 to 10 Scale)
                   </td>
                 </tr>
-                <tr>
-                  <td className="py-2.5 px-4 text-slate-400 font-bold">Overall Scout Grade</td>
-                  {selectedProspects.map((p) => (
-                    <td key={p.id} className="py-2.5 px-4 font-mono font-bold text-emerald-400 text-sm tabular-nums">
-                      {p.latestReport ? `${p.latestReport.overallGrade.toFixed(1)} / 10` : 'Unrated'}
-                    </td>
-                  ))}
-                </tr>
-                <tr>
-                  <td className="py-2.5 px-4 text-slate-400">Physical Tools</td>
-                  {selectedProspects.map((p) => (
-                    <td key={p.id} className="py-2.5 px-4 font-mono text-slate-200 tabular-nums">
-                      {p.latestReport ? p.latestReport.categoryGrades.physical.toFixed(1) : '—'}
-                    </td>
-                  ))}
-                </tr>
-                <tr>
-                  <td className="py-2.5 px-4 text-slate-400">Offensive Grade</td>
-                  {selectedProspects.map((p) => (
-                    <td key={p.id} className="py-2.5 px-4 font-mono text-slate-200 tabular-nums">
-                      {p.latestReport ? p.latestReport.categoryGrades.offensive.toFixed(1) : '—'}
-                    </td>
-                  ))}
-                </tr>
-                <tr>
-                  <td className="py-2.5 px-4 text-slate-400">Defensive Grade</td>
-                  {selectedProspects.map((p) => (
-                    <td key={p.id} className="py-2.5 px-4 font-mono text-slate-200 tabular-nums">
-                      {p.latestReport ? p.latestReport.categoryGrades.defensive.toFixed(1) : '—'}
-                    </td>
-                  ))}
-                </tr>
-                <tr>
-                  <td className="py-2.5 px-4 text-slate-400">Basketball IQ</td>
-                  {selectedProspects.map((p) => (
-                    <td key={p.id} className="py-2.5 px-4 font-mono text-slate-200 tabular-nums">
-                      {p.latestReport ? p.latestReport.categoryGrades.basketballIq.toFixed(1) : '—'}
-                    </td>
-                  ))}
-                </tr>
-                <tr>
-                  <td className="py-2.5 px-4 text-slate-400">Mentality & Motor</td>
-                  {selectedProspects.map((p) => (
-                    <td key={p.id} className="py-2.5 px-4 font-mono text-slate-200 tabular-nums">
-                      {p.latestReport ? p.latestReport.categoryGrades.mentality.toFixed(1) : '—'}
-                    </td>
-                  ))}
-                </tr>
+                {(
+                  [
+                    ['Overall Scout Grade', (p: (typeof selectedProspects)[number]) => p.latestReport?.overallGrade],
+                    ['Physical', (p: (typeof selectedProspects)[number]) => p.latestReport?.categoryGrades.physical],
+                    ['Offense', (p: (typeof selectedProspects)[number]) => p.latestReport?.categoryGrades.offensive],
+                    ['Defense', (p: (typeof selectedProspects)[number]) => p.latestReport?.categoryGrades.defensive],
+                    ['B-Ball IQ', (p: (typeof selectedProspects)[number]) => p.latestReport?.categoryGrades.basketballIq],
+                    ['Mentality', (p: (typeof selectedProspects)[number]) => p.latestReport?.categoryGrades.mentality],
+                    ['PPG', (p: (typeof selectedProspects)[number]) => p.stats[0]?.ppg],
+                    ['RPG', (p: (typeof selectedProspects)[number]) => p.stats[0]?.rpg],
+                    ['APG', (p: (typeof selectedProspects)[number]) => p.stats[0]?.apg],
+                  ] as const
+                ).map(([label, read]) => (
+                  <tr key={label}>
+                    <td className="py-2.5 px-4 text-slate-400">{label}</td>
+                    {selectedProspects.map((prospect, index) => {
+                      const value = read(prospect);
+                      const other = otherOf(index, read);
+                      return (
+                        <td key={prospect.id} className={`py-2.5 px-4 font-mono tabular-nums ${leadClass(value, other)}`}>
+                          {value === undefined || value <= 0 ? '—' : value.toFixed(1)}
+                          <span className="text-[10px]">{deltaLabel(value, other)}</span>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
 
                 {/* NBA Projection */}
                 <tr className="bg-[#101726]/80 text-[11px] font-bold uppercase tracking-wider text-sky-400">

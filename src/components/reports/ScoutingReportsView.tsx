@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FileSpreadsheet, Plus, Search, Star, ExternalLink, Filter } from 'lucide-react';
 import { useScouting } from '../../context/ScoutingContext';
+import { confidenceLabel } from '../../types/scouting';
 
 interface ScoutingReportsViewProps {
   onOpenNewReportModal: () => void;
@@ -126,7 +127,7 @@ export const ScoutingReportsView: React.FC<ScoutingReportsViewProps> = ({
                       Confidence
                     </span>
                     <span className="font-mono text-slate-300">
-                      {report.confidence} / 5
+                      {confidenceLabel(report.confidence)}
                     </span>
                   </div>
                 </div>

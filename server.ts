@@ -9,6 +9,17 @@ const PORT = 3000;
 
 app.use(express.json({ limit: '25mb' }));
 
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(204);
+    return;
+  }
+  next();
+});
+
 // ----------------------------------------------------
 // DIRECTORIES & SQLITE INITIALIZATION
 // ----------------------------------------------------
@@ -206,114 +217,7 @@ try {
   // column already exists
 }
 
-// ----------------------------------------------------
-// INITIAL SEEDING (Alex Morgan baseline if empty)
-// ----------------------------------------------------
-const prospectCount = (db.prepare('SELECT COUNT(*) as count FROM prospects').get() as { count: number }).count;
-if (prospectCount === 0) {
-  const insertProspect = db.prepare(`
-    INSERT INTO prospects (
-      id, first_name, last_name, avatar_url, birth_date, draft_year, draft_age,
-      nationality, birth_country, height_inches, height_formatted, weight_lbs,
-      wingspan_inches, wingspan_formatted, standing_reach_inches, standing_reach_formatted,
-      primary_position, secondary_position, current_team, current_league,
-      previous_teams, class_or_year, eligibility_status, status, tags,
-      created_at, updated_at
-    ) VALUES (
-      @id, @first_name, @last_name, @avatar_url, @birth_date, @draft_year, @draft_age,
-      @nationality, @birth_country, @height_inches, @height_formatted, @weight_lbs,
-      @wingspan_inches, @wingspan_formatted, @standing_reach_inches, @standing_reach_formatted,
-      @primary_position, @secondary_position, @current_team, @current_league,
-      @previous_teams, @class_or_year, @eligibility_status, @status, @tags,
-      @created_at, @updated_at
-    )
-  `);
-
-  const insertStat = db.prepare(`
-    INSERT INTO season_stats (
-      id, prospect_id, season, team, league, gp, mpg, ppg, rpg, orpg, drpg, apg, spg, bpg, tov,
-      fg_pct, fg3_pct, ft_pct, fgm, fga, fg3m, fg3a, ftm, fta, ts_pct, efg_pct, usg_pct, ast_pct,
-      tov_pct, orb_pct, drb_pct, trb_pct, stl_pct, blk_pct, ortg, drtg, bpm, source, updated_at
-    ) VALUES (
-      @id, @prospect_id, @season, @team, @league, @gp, @mpg, @ppg, @rpg, @orpg, @drpg, @apg, @spg, @bpg, @tov,
-      @fg_pct, @fg3_pct, @ft_pct, @fgm, @fga, @fg3m, @fg3a, @ftm, @fta, @ts_pct, @efg_pct, @usg_pct, @ast_pct,
-      @tov_pct, @orb_pct, @drb_pct, @trb_pct, @stl_pct, @blk_pct, @ortg, @drtg, @bpm, @source, @updated_at
-    )
-  `);
-
-  const now = new Date().toISOString();
-  insertProspect.run({
-    id: 'prospect-demo-alex-morgan',
-    first_name: 'Alex',
-    last_name: 'Morgan',
-    avatar_url: '',
-    birth_date: '2007-03-18',
-    draft_year: 2027,
-    draft_age: 20.2,
-    nationality: 'USA',
-    birth_country: 'USA',
-    height_inches: 79,
-    height_formatted: `6'7"`,
-    weight_lbs: 215,
-    wingspan_inches: 83,
-    wingspan_formatted: `6'11"`,
-    standing_reach_inches: 104,
-    standing_reach_formatted: `8'8"`,
-    primary_position: 'SF',
-    secondary_position: 'SG',
-    current_team: 'State University',
-    current_league: 'NCAA D1',
-    previous_teams: JSON.stringify([]),
-    class_or_year: 'Freshman',
-    eligibility_status: 'Eligible 2027 NBA Draft',
-    status: 'To Observe',
-    tags: JSON.stringify(['Perimeter Wing', 'Class of 2027']),
-    created_at: now,
-    updated_at: now,
-  });
-
-  insertStat.run({
-    id: 'stat-demo-01',
-    prospect_id: 'prospect-demo-alex-morgan',
-    season: '2025-26',
-    team: 'State University',
-    league: 'NCAA D1',
-    gp: 14,
-    mpg: 28.4,
-    ppg: 13.8,
-    rpg: 5.2,
-    orpg: 1.2,
-    drpg: 4.0,
-    apg: 2.6,
-    spg: 1.1,
-    bpg: 0.6,
-    tov: 1.7,
-    fg_pct: 0.468,
-    fg3_pct: 0.362,
-    ft_pct: 0.784,
-    fgm: 5.1,
-    fga: 10.9,
-    fg3m: 1.4,
-    fg3a: 3.9,
-    ftm: 2.2,
-    fta: 2.8,
-    ts_pct: 0.569,
-    efg_pct: 0.532,
-    usg_pct: 21.8,
-    ast_pct: 14.5,
-    tov_pct: 12.3,
-    orb_pct: 4.8,
-    drb_pct: 15.2,
-    trb_pct: 10.1,
-    stl_pct: 2.0,
-    blk_pct: 1.8,
-    ortg: 108.5,
-    drtg: 99.2,
-    bpm: 3.4,
-    source: 'NCAA D1 Verified Box Scores',
-    updated_at: now,
-  });
-}
+// Phase 3 does not seed demonstration prospects. Records come only from SQLite.
 
 // ----------------------------------------------------
 // HELPER: MAP SQLITE PROSPECT TO FRONTEND OBJECT
@@ -425,7 +329,7 @@ function mapReportFromDb(row: any): any {
     opponent: row.opponent,
     minutesObserved: row.minutes_observed,
     confidence: row.confidence,
-    categoryGrades: row.category_grades ? JSON.parse(row.category_grades) : { physical: 5, offensive: 5, defensive: 5, basketballIq: 5, mentality: 5 },
+    categoryGrades: row.category_grades ? JSON.parse(row.category_grades) : { physical: 0, offensive: 0, defensive: 0, basketballIq: 0, mentality: 0 },
     detailedGrades: row.detailed_grades ? JSON.parse(row.detailed_grades) : undefined,
     nbaArchetype: row.nba_archetype,
     projectedRole: row.projected_role,
@@ -669,8 +573,8 @@ app.post('/api/reports', (req, res) => {
       r.gameOrEvent || '',
       r.competition || 'NCAA D1',
       r.opponent || null,
-      r.minutesObserved || 30,
-      r.confidence || 4,
+      r.minutesObserved ?? null,
+      r.confidence ?? 1,
       JSON.stringify(r.categoryGrades || {}),
       JSON.stringify(r.detailedGrades || {}),
       r.nbaArchetype || '',
@@ -684,7 +588,7 @@ app.post('/api/reports', (req, res) => {
       JSON.stringify(r.weaknesses || []),
       JSON.stringify(r.mainConcerns || []),
       JSON.stringify(r.playerComparisons || []),
-      r.overallGrade || 5.0,
+      r.overallGrade ?? 0,
       r.executiveSummary || '',
       now
     );
@@ -962,8 +866,6 @@ app.get('/api/draftboard', (req, res) => {
       tier: b.tier,
       justification: b.justification,
       previousRank: b.previous_rank,
-      consensusRank: b.consensus_rank,
-      consensusSource: b.consensus_source,
       updatedAt: b.updated_at,
     })));
   } catch (err: any) {
@@ -992,8 +894,8 @@ app.put('/api/draftboard', (req, res) => {
           e.tier || 3,
           e.justification || '',
           e.previousRank || null,
-          e.consensusRank || null,
-          e.consensusSource || null,
+          null,
+          null,
           now
         );
       });
@@ -1008,8 +910,6 @@ app.put('/api/draftboard', (req, res) => {
       tier: b.tier,
       justification: b.justification,
       previousRank: b.previous_rank,
-      consensusRank: b.consensus_rank,
-      consensusSource: b.consensus_source,
       updatedAt: b.updated_at,
     })));
   } catch (err: any) {
@@ -1088,8 +988,6 @@ app.get('/api/backups', (req, res) => {
       tier: b.tier,
       justification: b.justification,
       previousRank: b.previous_rank,
-      consensusRank: b.consensus_rank,
-      consensusSource: b.consensus_source,
       updatedAt: b.updated_at,
     }));
 
@@ -1277,8 +1175,8 @@ app.post('/api/backups', (req, res) => {
             r.gameOrEvent || '',
             r.competition || 'NCAA D1',
             r.opponent || null,
-            r.minutesObserved || 30,
-            r.confidence || 4,
+            r.minutesObserved ?? null,
+            r.confidence ?? 1,
             JSON.stringify(r.categoryGrades || {}),
             JSON.stringify(r.detailedGrades || {}),
             r.nbaArchetype || '',
@@ -1292,7 +1190,7 @@ app.post('/api/backups', (req, res) => {
             JSON.stringify(r.weaknesses || []),
             JSON.stringify(r.mainConcerns || []),
             JSON.stringify(r.playerComparisons || []),
-            r.overallGrade || 5.0,
+            r.overallGrade ?? 0,
             r.executiveSummary || '',
             new Date().toISOString()
           );
@@ -1386,8 +1284,8 @@ app.post('/api/backups', (req, res) => {
             b.tier || 3,
             b.justification || '',
             b.previousRank || null,
-            b.consensusRank || null,
-            b.consensusSource || null,
+            null,
+            null,
             b.updatedAt || new Date().toISOString()
           );
         }
@@ -1419,7 +1317,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`COURTSIDE Phase 2 Server running at http://0.0.0.0:${PORT}`);
+    console.log(`COURTSIDE Phase 3 Server running at http://localhost:${PORT}`);
   });
 }
 

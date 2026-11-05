@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, FileSpreadsheet, ChevronDown, ChevronUp, Sliders, Check, HelpCircle } from 'lucide-react';
 import { useScouting } from '../../context/ScoutingContext';
+import { CONFIDENCE_OPTIONS, ConfidenceLevel } from '../../types/scouting';
 
 interface NewReportModalProps {
   isOpen: boolean;
@@ -17,7 +18,7 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({ isOpen, onClose 
   const [competition, setCompetition] = useState<'NCAA D1' | 'NBA G League'>('NCAA D1');
   const [opponent, setOpponent] = useState('');
   const [minutesObserved, setMinutesObserved] = useState(30);
-  const [confidence, setConfidence] = useState<1 | 2 | 3 | 4 | 5>(4);
+  const [confidence, setConfidence] = useState<ConfidenceLevel>(1);
 
   // 5 Core Categories: grade (1-10) and unrated flag
   const [physicalRated, setPhysicalRated] = useState(true);
@@ -258,18 +259,18 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({ isOpen, onClose 
 
             <div>
               <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
-                Confidence Level (1-5)
+                Confidence Level
               </label>
               <select
                 value={confidence}
-                onChange={(e) => setConfidence(Number(e.target.value) as any)}
+                onChange={(e) => setConfidence(Number(e.target.value) as ConfidenceLevel)}
                 className="w-full bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white focus:outline-none focus:border-amber-500 cursor-pointer"
               >
-                <option value={5}>5 - Very High (Multi-game live + film)</option>
-                <option value={4}>4 - High (Multiple full film games)</option>
-                <option value={3}>3 - Moderate (1 full game or showcase)</option>
-                <option value={2}>2 - Preliminary (Highlight / cutups)</option>
-                <option value={1}>1 - Initial Glance</option>
+                {CONFIDENCE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

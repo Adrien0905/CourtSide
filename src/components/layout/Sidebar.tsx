@@ -5,11 +5,8 @@ import {
   FileSpreadsheet,
   Trophy,
   GitCompare,
-  Film,
-  CalendarDays,
   Settings,
   PlusCircle,
-  Database,
   ShieldCheck
 } from 'lucide-react';
 import { useScouting, ActiveView } from '../../context/ScoutingContext';
@@ -23,16 +20,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenNewProspectModal,
   onOpenNewReportModal
 }) => {
-  const { activeView, setActiveView, prospects, reports, draftBoard, gameLogs, videos } = useScouting();
+  const { activeView, setActiveView, prospects, draftBoard, loadError } = useScouting();
 
   const navItems: { id: ActiveView; label: string; icon: React.ElementType; count?: number }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'database', label: 'Player Database', icon: Users, count: prospects.length },
-    { id: 'reports', label: 'Scouting Reports', icon: FileSpreadsheet, count: reports.length },
     { id: 'draftboard', label: 'My Draft Board', icon: Trophy, count: draftBoard.length },
     { id: 'comparison', label: 'Player Comparison', icon: GitCompare },
-    { id: 'gamelog', label: 'Game Log', icon: CalendarDays, count: gameLogs.length },
-    { id: 'video', label: 'Video Library', icon: Film, count: videos.length },
     { id: 'settings', label: 'Settings & Data', icon: Settings },
   ];
 
@@ -127,9 +121,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex items-center justify-between text-[11px] text-slate-400 mb-2">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
-            <span className="font-mono text-[10px]">Local Database</span>
+            <span className="font-mono text-[10px]">{loadError ? 'Database offline' : 'SQLite'}</span>
           </div>
-          <span className="text-[10px] font-mono text-slate-500">v1.0 (Phase 1)</span>
+          <span className="text-[10px] font-mono text-slate-500">Phase 3</span>
         </div>
 
         <div className="flex items-center gap-2.5 pt-1.5 border-t border-[#162032]">
