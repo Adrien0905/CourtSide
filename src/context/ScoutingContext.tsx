@@ -7,6 +7,7 @@ import {
   VideoClip,
   DraftBoardEntry,
 } from '../types/scouting';
+import { dedupeSeasonStats } from '../lib/seasonStats';
 
 export type ActiveView =
   | 'dashboard'
@@ -169,7 +170,10 @@ export const ScoutingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         bRes.json(),
       ]);
 
-      const nextProspects: Prospect[] = Array.isArray(pData) ? pData : [];
+      const nextProspects: Prospect[] = (Array.isArray(pData) ? pData : []).map((prospect: Prospect) => ({
+        ...prospect,
+        stats: dedupeSeasonStats(prospect.stats || []),
+      }));
       setProspects(nextProspects);
       setReports(Array.isArray(rData) ? rData : []);
       setNotes(Array.isArray(nData) ? nData : []);

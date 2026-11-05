@@ -10,6 +10,7 @@ import {
   type ImportedProspect,
   type ImportedSeason,
 } from './csvEngine.ts';
+import { normalizeSeasonLabel } from '../src/lib/seasonStats.ts';
 
 const CBB_BASE = () => (process.env.CBB_STATS_BASE_URL || 'https://stats-cbb.com').replace(/\/$/, '');
 const CBD_BASE = () => (process.env.CBBD_BASE_URL || 'https://api.collegebasketballdata.com').replace(/\/$/, '');
@@ -130,7 +131,7 @@ function pickNumber(source: Record<string, unknown> | undefined, keys: string[])
 }
 
 function seasonLabel(endYear: number): string {
-  return `${endYear - 1}-${String(endYear).slice(-2)}`;
+  return normalizeSeasonLabel(`${endYear - 1}-${endYear}`);
 }
 
 function splitName(name: string): { firstName: string; lastName: string } {
@@ -246,7 +247,7 @@ function mapCbdPlayer(player: Record<string, unknown>, stat: Record<string, unkn
   const games = pickNumber(stat, ['games']);
   const rebounds = asRecord(stat?.rebounds);
   const season: ImportedSeason = {
-    season: String(stat?.seasonLabel || seasonLabel(seasonYear)),
+    season: normalizeSeasonLabel(stat?.seasonLabel || seasonLabel(seasonYear)),
     team: String(stat?.team || team),
     league: 'NCAA D1',
     gp: games,

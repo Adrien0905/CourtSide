@@ -1,4 +1,5 @@
 import type Database from 'better-sqlite3';
+import { mergeIncomingSeason, normalizeSeasonLabel, dedupeSeasonStats, type SeasonStatRow } from '../src/lib/seasonStats.ts';
 
 export interface ImportedSeason {
   season: string;
@@ -412,7 +413,7 @@ export function parseProspectCsv(text: string): { prospects: ImportedProspect[];
     const draftYear = finiteOrNull(record.draft_year);
     const status = STATUSES.has(record.status) ? record.status : '';
     const source = record.source || 'CSV Import';
-    const seasonLabel = record.season || '';
+    const seasonLabel = normalizeSeasonLabel(record.season) || record.season || '';
     const statValues = [
       record.gp, record.mpg, record.ppg, record.rpg, record.orpg, record.drpg,
       record.apg, record.spg, record.bpg, record.tov, record.fg_pct, record.fg3_pct, record.ft_pct,
@@ -550,6 +551,180 @@ function blankToNull(value: string): string | null {
   return trimmed ? trimmed : null;
 }
 
+function seasonStatValues(prospectId: string, row: Record<string, unknown>, now: string) {
+  return [
+    prospectId,
+    normalizeSeasonLabel(row.season) || row.season,
+    row.team ?? null,
+    row.league ?? null,
+    row.gp ?? null,
+    row.mpg ?? null,
+    row.ppg ?? null,
+    row.rpg ?? null,
+    row.orpg ?? null,
+    row.drpg ?? null,
+    row.apg ?? null,
+    row.spg ?? null,
+    row.bpg ?? null,
+    row.tov ?? null,
+    row.fg_pct ?? null,
+    row.fg3_pct ?? null,
+    row.ft_pct ?? null,
+    row.fgm ?? null,
+    row.fga ?? null,
+    row.fg3m ?? null,
+    row.fg3a ?? null,
+    row.ftm ?? null,
+    row.fta ?? null,
+    row.ts_pct ?? null,
+    row.efg_pct ?? null,
+    row.usg_pct ?? null,
+    row.ast_pct ?? null,
+    row.tov_pct ?? null,
+    row.orb_pct ?? null,
+    row.drb_pct ?? null,
+    row.trb_pct ?? null,
+    row.stl_pct ?? null,
+    row.blk_pct ?? null,
+    row.ortg ?? null,
+    row.drtg ?? null,
+    row.bpm ?? null,
+    row.source ?? null,
+    now,
+  ];
+}
+
+const SEASON_STAT_UPDATE = `
+  UPDATE season_stats SET
+    prospect_id = ?, season = ?, team = ?, league = ?, gp = ?, mpg = ?, ppg = ?, rpg = ?, orpg = ?, drpg = ?,
+    apg = ?, spg = ?, bpg = ?, tov = ?, fg_pct = ?, fg3_pct = ?, ft_pct = ?, fgm = ?, fga = ?, fg3m = ?, fg3a = ?,
+    ftm = ?, fta = ?, ts_pct = ?, efg_pct = ?, usg_pct = ?, ast_pct = ?, tov_pct = ?, orb_pct = ?, drb_pct = ?,
+    trb_pct = ?, stl_pct = ?, blk_pct = ?, ortg = ?, drtg = ?, bpm = ?, source = ?, updated_at = ?
+  WHERE id = ?
+`;
+
+function importedSeasonToRow(season: ImportedSeason, team: string, league: string): Record<string, unknown> {
+  return {
+    season: normalizeSeasonLabel(season.season) || season.season,
+    team: season.team || team,
+    league: season.league || league,
+    gp: season.gp,
+    mpg: season.mpg,
+    ppg: season.ppg,
+    rpg: season.rpg,
+    orpg: season.orpg,
+    drpg: season.drpg,
+    apg: season.apg,
+    spg: season.spg,
+    bpg: season.bpg,
+    tov: season.tov,
+    fg_pct: season.fgPct,
+    fg3_pct: season.fg3Pct,
+    ft_pct: season.ftPct,
+    fgm: season.fgm,
+    fga: season.fga,
+    fg3m: season.fg3m,
+    fg3a: season.fg3a,
+    ftm: season.ftm,
+    fta: season.fta,
+    ts_pct: season.tsPct,
+    efg_pct: season.efgPct,
+    usg_pct: season.usgPct,
+    ast_pct: season.astPct,
+    tov_pct: season.tovPct,
+    orb_pct: season.orbPct,
+    drb_pct: season.drbPct,
+    trb_pct: season.trbPct,
+    stl_pct: season.stlPct,
+    blk_pct: season.blkPct,
+    ortg: season.ortg,
+    drtg: season.drtg,
+    bpm: season.bpm,
+    source: season.source,
+  };
+}
+
+function saveSeasonStat(
+  db: Database.Database,
+  prospectId: string,
+  season: ImportedSeason,
+  team: string,
+  league: string,
+  now: string
+) {
+  const incoming = importedSeasonToRow(season, team, league);
+  const seasonKey = String(incoming.season);
+  const existing = db.prepare('SELECT * FROM season_stats WHERE prospect_id = ?').all(prospectId) as Record<string, unknown>[];
+  const related = existing.filter((row) => (normalizeSeasonLabel(row.season) || row.season) === seasonKey);
+  const merged = mergeIncomingSeason<SeasonStatRow>(
+    related.map((row) => ({ ...row, season: seasonKey, id: row.id == null ? undefined : String(row.id) })),
+    { ...incoming, season: seasonKey }
+  );
+  const keepId = merged.id && related.some((row) => row.id === merged.id)
+    ? String(merged.id)
+    : `stat-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+  const values = seasonStatValues(prospectId, merged as unknown as Record<string, unknown>, now);
+  if (related.some((row) => row.id === keepId)) {
+    db.prepare(SEASON_STAT_UPDATE).run(...values, keepId);
+  } else {
+    db.prepare(`
+      INSERT INTO season_stats (
+        id, prospect_id, season, team, league, gp, mpg, ppg, rpg, orpg, drpg, apg, spg, bpg, tov,
+        fg_pct, fg3_pct, ft_pct, fgm, fga, fg3m, fg3a, ftm, fta, ts_pct, efg_pct, usg_pct, ast_pct,
+        tov_pct, orb_pct, drb_pct, trb_pct, stl_pct, blk_pct, ortg, drtg, bpm, source, updated_at
+      ) VALUES (
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+      )
+    `).run(keepId, ...values);
+  }
+  for (const row of related) {
+    if (row.id !== keepId) db.prepare('DELETE FROM season_stats WHERE id = ?').run(row.id);
+  }
+}
+
+export function loadCollapsedSeasonStats(db: Database.Database, prospectId: string) {
+  const rows = db.prepare('SELECT * FROM season_stats WHERE prospect_id = ?').all(prospectId) as Record<string, unknown>[];
+  const collapsed = dedupeSeasonStats(rows.map((row) => ({ ...row, id: String(row.id), season: String(row.season ?? '') })));
+  const changed = collapsed.length !== rows.length
+    || rows.some((row) => normalizeSeasonLabel(row.season) !== row.season);
+  if (!changed) {
+    return rows.sort((a, b) => String(b.season).localeCompare(String(a.season)));
+  }
+  const now = new Date().toISOString();
+  const keepIds = new Set<string>();
+  const write = db.transaction(() => {
+    for (const row of collapsed) {
+      const keepId = row.id && rows.some((existing) => existing.id === row.id)
+        ? String(row.id)
+        : `stat-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      keepIds.add(keepId);
+      const values = seasonStatValues(prospectId, row, now);
+      if (rows.some((existing) => existing.id === keepId)) {
+        db.prepare(SEASON_STAT_UPDATE).run(...values, keepId);
+      } else {
+        db.prepare(`
+          INSERT INTO season_stats (
+            id, prospect_id, season, team, league, gp, mpg, ppg, rpg, orpg, drpg, apg, spg, bpg, tov,
+            fg_pct, fg3_pct, ft_pct, fgm, fga, fg3m, fg3a, ftm, fta, ts_pct, efg_pct, usg_pct, ast_pct,
+            tov_pct, orb_pct, drb_pct, trb_pct, stl_pct, blk_pct, ortg, drtg, bpm, source, updated_at
+          ) VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+          )
+        `).run(keepId, ...values);
+      }
+    }
+    for (const row of rows) {
+      if (!keepIds.has(String(row.id))) db.prepare('DELETE FROM season_stats WHERE id = ?').run(row.id);
+    }
+  });
+  write();
+  return db.prepare('SELECT * FROM season_stats WHERE prospect_id = ? ORDER BY season DESC').all(prospectId);
+}
+
 export function upsertImportedProspect(db: Database.Database, input: ImportedProspect): { action: 'created' | 'updated'; id: string } {
   const now = new Date().toISOString();
   const byExternal = input.externalCbbId
@@ -676,72 +851,7 @@ export function upsertImportedProspect(db: Database.Database, input: ImportedPro
   }
 
   if (input.season) {
-    const existingStat = db.prepare(
-      'SELECT id FROM season_stats WHERE prospect_id = ? AND season = ? AND source = ?'
-    ).get(id, input.season.season, input.season.source) as { id: string } | undefined;
-    const statId = existingStat?.id || `stat-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-    const values = [
-      id,
-      input.season.season,
-      input.season.team || input.currentTeam,
-      input.season.league || input.currentLeague,
-      input.season.gp,
-      input.season.mpg,
-      input.season.ppg,
-      input.season.rpg,
-      input.season.orpg,
-      input.season.drpg,
-      input.season.apg,
-      input.season.spg,
-      input.season.bpg,
-      input.season.tov,
-      input.season.fgPct,
-      input.season.fg3Pct,
-      input.season.ftPct,
-      input.season.fgm,
-      input.season.fga,
-      input.season.fg3m,
-      input.season.fg3a,
-      input.season.ftm,
-      input.season.fta,
-      input.season.tsPct,
-      input.season.efgPct,
-      input.season.usgPct,
-      input.season.astPct,
-      input.season.tovPct,
-      input.season.orbPct,
-      input.season.drbPct,
-      input.season.trbPct,
-      input.season.stlPct,
-      input.season.blkPct,
-      input.season.ortg,
-      input.season.drtg,
-      input.season.bpm,
-      input.season.source,
-      now,
-    ];
-    if (existingStat) {
-      db.prepare(`
-        UPDATE season_stats SET
-          prospect_id = ?, season = ?, team = ?, league = ?, gp = ?, mpg = ?, ppg = ?, rpg = ?, orpg = ?, drpg = ?,
-          apg = ?, spg = ?, bpg = ?, tov = ?, fg_pct = ?, fg3_pct = ?, ft_pct = ?, fgm = ?, fga = ?, fg3m = ?, fg3a = ?,
-          ftm = ?, fta = ?, ts_pct = ?, efg_pct = ?, usg_pct = ?, ast_pct = ?, tov_pct = ?, orb_pct = ?, drb_pct = ?,
-          trb_pct = ?, stl_pct = ?, blk_pct = ?, ortg = ?, drtg = ?, bpm = ?, source = ?, updated_at = ?
-        WHERE id = ?
-      `).run(...values, statId);
-    } else {
-      db.prepare(`
-        INSERT INTO season_stats (
-          id, prospect_id, season, team, league, gp, mpg, ppg, rpg, orpg, drpg, apg, spg, bpg, tov,
-          fg_pct, fg3_pct, ft_pct, fgm, fga, fg3m, fg3a, ftm, fta, ts_pct, efg_pct, usg_pct, ast_pct,
-          tov_pct, orb_pct, drb_pct, trb_pct, stl_pct, blk_pct, ortg, drtg, bpm, source, updated_at
-        ) VALUES (
-          ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-          ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-          ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-        )
-      `).run(statId, ...values);
-    }
+    saveSeasonStat(db, id, input.season, input.currentTeam, input.currentLeague, now);
   }
 
   return { action, id };

@@ -6,6 +6,8 @@ import fs from 'fs';
 import Database from 'better-sqlite3';
 import { registerNcaaRoutes } from './server/ncaaProxy.ts';
 import { registerCsvRoutes } from './server/csvRoutes.ts';
+import { loadCollapsedSeasonStats } from './server/csvEngine.ts';
+import { normalizeSeasonLabel } from './src/lib/seasonStats.ts';
 
 const app = express();
 const PORT = 3000;
@@ -248,10 +250,10 @@ function mapProspectFromDb(row: any): any {
   if (!row) return null;
 
   // Fetch season stats
-  const statsRows = db.prepare('SELECT * FROM season_stats WHERE prospect_id = ? ORDER BY season DESC').all(row.id) as any[];
+  const statsRows = loadCollapsedSeasonStats(db, row.id) as any[];
   const stats = statsRows.map((s) => ({
     id: s.id,
-    season: s.season,
+    season: normalizeSeasonLabel(s.season) || s.season,
     team: s.team,
     league: s.league,
     gp: s.gp,
@@ -1265,7 +1267,7 @@ app.post('/api/backups', (req, res) => {
             insertStat.run(
               s.id || `stat-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
               p.id,
-              s.season || '2025-26',
+              normalizeSeasonLabel(s.season) || s.season || '2025-26',
               s.team || p.currentTeam,
               s.league || p.currentLeague,
               s.gp || 0,
