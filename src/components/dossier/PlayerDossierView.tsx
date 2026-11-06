@@ -40,6 +40,7 @@ function fmtShot(value: number | null | undefined): string {
 }
 import { RadarChart, categoryRadarPoints } from '../common/RadarChart';
 import { FilmSequencePlayer } from '../video/FilmSequencePlayer';
+import { EditProspectModal } from '../prospects/EditProspectModal';
 import { collectClipMarkers, parseTimeToSeconds } from '../../lib/videoTime';
 import { ProspectStatus, ScoutingReport, confidenceLabel } from '../../types/scouting';
 
@@ -68,6 +69,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
     dossierFocus,
     setDossierFocus,
     addVideoClip,
+    deleteProspect,
   } = useScouting();
 
   const [activeTab, setActiveTab] = useState<DossierTab>(dossierFocus);
@@ -82,6 +84,10 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
   const [editContent, setEditContent] = useState('');
   const [editTags, setEditTags] = useState('');
   const [isAddingVideo, setIsAddingVideo] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   React.useEffect(() => {
     setActiveTab(dossierFocus);
@@ -141,7 +147,19 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
   const currentStats = seasonStats[0];
 
   const handleStatusChange = (newStatus: ProspectStatus) => {
-    updateProspect(p.id, { status: newStatus });
+    updateProspect(p.id, { status: newStatus }).catch((err) => {
+      console.error('[COURTSIDE] Failed to update prospect status', err);
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    setIsDeleting(true);
+    setDeleteError('');
+    deleteProspect(p.id).catch((err) => {
+      console.error('[COURTSIDE] Failed to delete prospect', err);
+      setDeleteError(err instanceof Error ? err.message : 'Suppression impossible');
+      setIsDeleting(false);
+    });
   };
 
   const handleSaveNote = (e: React.FormEvent) => {
@@ -297,6 +315,21 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
             >
               <FileSpreadsheet className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>Add Report</span>
+            </button>
+            <button
+              onClick={() => setIsEditingProfile(true)}
+              className="px-3 py-1.5 bg-[#151D2F] hover:bg-[#1C2740] text-slate-200 border border-[#23314D] text-xs font-medium rounded-md"
+            >
+              Edit Profile
+            </button>
+            <button
+              onClick={() => {
+                setDeleteError('');
+                setIsConfirmingDelete(true);
+              }}
+              className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-medium rounded-md"
+            >
+              Delete Prospect
             </button>
           </div>
         </div>
@@ -1224,6 +1257,37 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      <EditProspectModal prospect={isEditingProfile ? p : null} onClose={() => setIsEditingProfile(false)} />
+
+      {isConfirmingDelete && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#101726] border border-[#233352] rounded-xl max-w-sm w-full p-6 space-y-4">
+            <h2 className="text-sm font-bold text-white">Supprimer définitivement ce joueur ?</h2>
+            <p className="text-xs text-slate-400">
+              {p.firstName} {p.lastName} et les données associées seront retirés de la base.
+            </p>
+            {deleteError && <p className="text-xs text-rose-300">{deleteError}</p>}
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setIsConfirmingDelete(false)}
+                className="px-3 py-2 text-xs text-slate-300"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                className="px-3 py-2 bg-rose-500 text-white font-semibold rounded-md text-xs disabled:opacity-60"
+              >
+                {isDeleting ? 'Suppression…' : 'Supprimer'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

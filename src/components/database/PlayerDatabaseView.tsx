@@ -38,7 +38,6 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
   const [gradeRange, setGradeRange] = useState<'ALL' | 'ELITE' | 'ABOVE' | 'MID' | 'UNRATED'>('ALL');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [isCompact, setIsCompact] = useState(false);
 
   // Column visibility
   const [showWingspan, setShowWingspan] = useState(true);
@@ -204,14 +203,6 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2.5">
-          {/* Density toggle */}
-          <button
-            onClick={() => setIsCompact(!isCompact)}
-            className="px-2.5 py-1.5 rounded bg-[#131B2C] border border-[#22314E] text-xs font-medium text-slate-300 hover:text-white transition-colors"
-          >
-            {isCompact ? 'Standard Density' : 'Compact Rows'}
-          </button>
-
           {/* Columns dropdown */}
           <div className="relative">
             <button
@@ -264,14 +255,6 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
               </div>
             )}
           </div>
-
-          <button
-            onClick={onOpenNewProspectModal}
-            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs rounded-md transition-colors flex items-center gap-1.5 shadow-sm"
-          >
-            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>Add Prospect</span>
-          </button>
         </div>
       </div>
 
@@ -430,7 +413,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
                 {showStats && (
                   <th
                     onClick={() => handleSort('ppg')}
-                    className="py-3 px-6 w-[22%] min-w-[16rem] cursor-pointer hover:text-amber-400 transition-colors font-mono text-right"
+                    className="py-3 px-4 min-w-[19rem] cursor-pointer hover:text-amber-400 transition-colors font-mono text-right"
                   >
                     PPG / RPG / APG
                   </th>
@@ -470,9 +453,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
                     <tr
                       key={p.id}
                       onClick={() => handleRowClick(p.id)}
-                      className={`hover:bg-[#141D30] transition-colors cursor-pointer group ${
-                        isCompact ? 'py-1.5' : 'py-3'
-                      }`}
+                      className="hover:bg-[#141D30] transition-colors cursor-pointer group"
                     >
                       {/* Compare Checkbox */}
                       <td
@@ -538,22 +519,22 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
 
                       {/* Stats */}
                       {showStats && (
-                        <td className="py-2.5 px-6 w-[22%] min-w-[16rem] font-mono text-right tabular-nums text-slate-200">
+                        <td className="py-2.5 px-4 min-w-[19rem] font-mono tabular-nums text-slate-200">
                           {stat ? (
-                            <span className="inline-flex justify-end gap-5 whitespace-nowrap">
-                              <span><strong className="text-white">{stat.ppg == null ? '—' : stat.ppg.toFixed(1)}</strong> <span className="text-[10px] text-slate-500">PPG</span></span>
-                              <span><strong className="text-white">{stat.rpg == null ? '—' : stat.rpg.toFixed(1)}</strong> <span className="text-[10px] text-slate-500">RPG</span></span>
-                              <span><strong className="text-white">{stat.apg == null ? '—' : stat.apg.toFixed(1)}</strong> <span className="text-[10px] text-slate-500">APG</span></span>
+                            <span className="grid grid-cols-3 gap-x-4 whitespace-nowrap">
+                              <span className="text-right"><strong className="text-white">{stat.ppg == null ? '—' : stat.ppg.toFixed(1)}</strong> <span className="text-[10px] text-slate-500">PPG</span></span>
+                              <span className="text-right"><strong className="text-white">{stat.rpg == null ? '—' : stat.rpg.toFixed(1)}</strong> <span className="text-[10px] text-slate-500">RPG</span></span>
+                              <span className="text-right"><strong className="text-white">{stat.apg == null ? '—' : stat.apg.toFixed(1)}</strong> <span className="text-[10px] text-slate-500">APG</span></span>
                             </span>
                           ) : (
-                            <span className="text-slate-400">—</span>
+                            <span className="block text-right text-slate-400">—</span>
                           )}
                         </td>
                       )}
 
                       {/* Status */}
-                      <td className="py-2.5 px-3 text-center">
-                        <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-[#182337] text-slate-300 border border-[#253450]">
+                      <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                        <span className="inline-flex items-center justify-center whitespace-nowrap min-w-[6.75rem] text-[10px] font-medium px-2.5 py-0.5 rounded bg-[#182337] text-slate-300 border border-[#253450]">
                           {p.status}
                         </span>
                       </td>

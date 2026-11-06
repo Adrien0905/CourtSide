@@ -44,10 +44,7 @@ const AppContent: React.FC = () => {
     switch (activeView) {
       case 'dashboard':
         return (
-          <DashboardView
-            onOpenNewProspectModal={() => setIsProspectModalOpen(true)}
-            onOpenNewReportModal={openNewReport}
-          />
+          <DashboardView />
         );
       case 'database':
         return (
@@ -79,10 +76,7 @@ const AppContent: React.FC = () => {
         return <SettingsView />;
       default:
         return (
-          <DashboardView
-            onOpenNewProspectModal={() => setIsProspectModalOpen(true)}
-            onOpenNewReportModal={openNewReport}
-          />
+          <DashboardView />
         );
     }
   };
@@ -92,7 +86,6 @@ const AppContent: React.FC = () => {
       {/* Desktop Permanent Sidebar */}
       <Sidebar
         onOpenNewProspectModal={() => setIsProspectModalOpen(true)}
-        onOpenNewReportModal={openNewReport}
       />
 
       {/* Main Viewport */}

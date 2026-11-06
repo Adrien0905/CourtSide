@@ -2,7 +2,6 @@ import React from 'react';
 import {
   LayoutDashboard,
   Users,
-  FileSpreadsheet,
   Trophy,
   GitCompare,
   Settings,
@@ -13,12 +12,10 @@ import { useScouting, ActiveView } from '../../context/ScoutingContext';
 
 interface SidebarProps {
   onOpenNewProspectModal: () => void;
-  onOpenNewReportModal: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   onOpenNewProspectModal,
-  onOpenNewReportModal
 }) => {
   const { activeView, setActiveView, prospects, draftBoard, loadError } = useScouting();
 
@@ -63,14 +60,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         >
           <PlusCircle className="w-3.5 h-3.5 stroke-[2.5]" />
           <span>Add Prospect</span>
-        </button>
-
-        <button
-          onClick={onOpenNewReportModal}
-          className="w-full py-1.5 px-3 bg-[#162035] hover:bg-[#1E2B47] text-slate-200 border border-[#24324F] font-medium text-xs rounded-md transition-colors flex items-center justify-center gap-2"
-        >
-          <FileSpreadsheet className="w-3.5 h-3.5 text-amber-400" />
-          <span>New Scouting Report</span>
         </button>
       </div>
 

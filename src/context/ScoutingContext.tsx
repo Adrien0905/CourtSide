@@ -54,7 +54,7 @@ interface ScoutingContextType {
 
   // Actions
   addProspect: (newProspect: Omit<Prospect, 'id' | 'createdAt' | 'updatedAt' | 'reportsCount' | 'notesCount' | 'gamesObservedCount' | 'videoCount' | 'stats'>) => Promise<string>;
-  updateProspect: (id: string, updates: Partial<Prospect>) => Promise<void>;
+  updateProspect: (id: string, updates: Partial<Prospect>) => Promise<Prospect>;
   deleteProspect: (id: string) => Promise<void>;
   addReport: (report: Omit<ScoutingReport, 'id'>) => Promise<void>;
   updateReport: (id: string, report: Omit<ScoutingReport, 'id'>) => Promise<void>;
@@ -244,24 +244,27 @@ export const ScoutingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Update Prospect via SQLite API
   const updateProspect = async (id: string, updates: Partial<Prospect>) => {
-    const now = new Date().toISOString();
-    setProspects((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...updates, updatedAt: now } : p))
-    );
-
-    try {
-      await fetch(`/api/prospects/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      });
-    } catch (err) {
-      console.warn('Could not update prospect on SQLite API:', err);
+    const res = await fetch(`/api/players/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || 'Prospect update failed');
     }
+    const saved = await res.json();
+    setProspects((prev) => prev.map((p) => (p.id === id ? { ...p, ...saved } : p)));
+    return saved as Prospect;
   };
 
   // Delete Prospect via SQLite API
   const deleteProspect = async (id: string) => {
+    const res = await fetch(`/api/players/${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || 'Prospect delete failed');
+    }
     setProspects((prev) => prev.filter((p) => p.id !== id));
     setReports((prev) => prev.filter((r) => r.prospectId !== id));
     setNotes((prev) => prev.filter((n) => n.prospectId !== id));
@@ -269,17 +272,8 @@ export const ScoutingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setVideos((prev) => prev.filter((v) => v.prospectId !== id));
     setDraftBoard((prev) => prev.filter((b) => b.prospectId !== id));
     setComparisonProspectIds((prev) => prev.filter((pId) => pId !== id));
-
-    if (selectedProspectId === id) {
-      const remaining = prospects.filter((p) => p.id !== id);
-      setSelectedProspectId(remaining.length > 0 ? remaining[0].id : null);
-    }
-
-    try {
-      await fetch(`/api/prospects/${id}`, { method: 'DELETE' });
-    } catch (err) {
-      console.warn('Could not delete prospect on SQLite API:', err);
-    }
+    if (selectedProspectId === id) setSelectedProspectId(null);
+    setActiveView('database');
   };
 
   const applySavedReport = (saved: ScoutingReport, previousId?: string) => {
