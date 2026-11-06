@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Film, Plus, Play, ExternalLink, Clock, Tag, X, Trash2 } from 'lucide-react';
+import { Film, Plus, Play, ExternalLink, Trash2 } from 'lucide-react';
 import { useScouting } from '../../context/ScoutingContext';
 import { VideoTimestamp } from '../../types/scouting';
+import { collectClipMarkers, parseTimeToSeconds } from '../../lib/videoTime';
+import { FilmSequencePlayer } from './FilmSequencePlayer';
 
 export const VideoLibraryView: React.FC = () => {
-  const { videos, prospects, addVideoClip, setSelectedProspectId, setActiveView } = useScouting();
+  const { videos, prospects, addVideoClip, openProspect } = useScouting();
 
   const [isAddingVideo, setIsAddingVideo] = useState(false);
 
@@ -22,20 +24,9 @@ export const VideoLibraryView: React.FC = () => {
   const [newTsLabel, setNewTsLabel] = useState('');
   const [newTsNote, setNewTsNote] = useState('');
 
-  const parseTimeToSeconds = (timeStr: string) => {
-    const parts = timeStr.trim().split(':').map(Number);
-    if (parts.length === 2) {
-      return parts[0] * 60 + parts[1];
-    }
-    if (parts.length === 3) {
-      return parts[0] * 3600 + parts[1] * 60 + parts[2];
-    }
-    return Number(timeStr) || 0;
-  };
-
   const handleAddTimestamp = () => {
     if (!newTsLabel.trim() || !newTsNote.trim()) return;
-    const seconds = parseTimeToSeconds(newTsLabel);
+    const seconds = parseTimeToSeconds(newTsLabel) ?? 0;
     setTimestamps((prev) => [
       ...prev,
       { seconds, label: newTsLabel.trim(), note: newTsNote.trim() },
@@ -57,14 +48,15 @@ export const VideoLibraryView: React.FC = () => {
       .map((t) => t.trim())
       .filter(Boolean);
 
+    const trimmedDescription = description.trim();
     addVideoClip({
       prospectId,
       title: title.trim(),
       videoUrl: videoUrl.trim(),
       platform: videoUrl.includes('youtube') || videoUrl.includes('youtu.be') ? 'youtube' : 'other',
-      description: description.trim() || undefined,
+      description: trimmedDescription || undefined,
       tags,
-      timestamps,
+      timestamps: collectClipMarkers({ timestamps, description: trimmedDescription }),
     });
 
     setIsAddingVideo(false);
@@ -269,10 +261,7 @@ export const VideoLibraryView: React.FC = () => {
                     </div>
                     {p && (
                       <button
-                        onClick={() => {
-                          setSelectedProspectId(p.id);
-                          setActiveView('dossier');
-                        }}
+                        onClick={() => openProspect(p.id, 'video')}
                         className="text-xs text-amber-400 hover:underline mt-1 block"
                       >
                         Prospect: {p.firstName} {p.lastName} ({p.primaryPosition} · {p.currentTeam})
@@ -291,37 +280,11 @@ export const VideoLibraryView: React.FC = () => {
                   </a>
                 </div>
 
-                {vid.description && (
-                  <p className="text-xs text-slate-300 leading-relaxed">
-                    {vid.description}
-                  </p>
-                )}
-
-                {/* Timestamps */}
-                <div className="space-y-2 pt-2">
-                  <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
-                    Interactive Possession Timestamps
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                    {vid.timestamps.map((ts, idx) => (
-                      <div
-                        key={idx}
-                        className="p-3 rounded bg-[#131C2D] border border-[#1F2C46] flex items-start gap-3 text-xs"
-                      >
-                        <a
-                          href={`${vid.videoUrl}&t=${ts.seconds}s`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="font-mono font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20 hover:bg-amber-400/20 shrink-0"
-                          title="Click to jump to timestamp"
-                        >
-                          {ts.label}
-                        </a>
-                        <span className="text-slate-200 leading-snug">{ts.note}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <FilmSequencePlayer
+                  videoUrl={vid.videoUrl}
+                  description={vid.description}
+                  timestamps={vid.timestamps}
+                />
               </div>
             );
           })}

@@ -41,6 +41,8 @@ function fmtShot(value: number | null | undefined): string {
   return `${(Number(value) * 100).toFixed(1)}%`;
 }
 import { RadarChart, categoryRadarPoints } from '../common/RadarChart';
+import { FilmSequencePlayer } from '../video/FilmSequencePlayer';
+import { collectClipMarkers, parseTimeToSeconds } from '../../lib/videoTime';
 import { ProspectStatus, ScoutingReport, confidenceLabel } from '../../types/scouting';
 
 interface PlayerDossierViewProps {
@@ -965,15 +967,17 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                 if (!title || !videoUrl) return;
                 const label = String(form.get('timestampLabel') || '').trim();
                 const note = String(form.get('timestampNote') || '').trim();
-                const timestamps = label && note
-                  ? [{ seconds: 0, label, note }]
+                const description = String(form.get('description') || '').trim();
+                const explicit = label && note
+                  ? [{ seconds: parseTimeToSeconds(label) ?? 0, label, note }]
                   : [];
+                const timestamps = collectClipMarkers({ timestamps: explicit, description });
                 addVideoClip({
                   prospectId: p.id,
                   title,
                   videoUrl,
                   platform: videoUrl.includes('youtu') ? 'youtube' : 'other',
-                  description: String(form.get('description') || '').trim() || undefined,
+                  description: description || undefined,
                   tags: String(form.get('tags') || '')
                     .split(',')
                     .map((tag) => tag.trim())
@@ -986,7 +990,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
             >
               <input name="title" required placeholder="Clip title" className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
               <input name="videoUrl" required placeholder="YouTube or video URL" className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
-              <input name="description" placeholder="Description" className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
+              <textarea name="description" rows={3} placeholder={'Description\n00:34 – lecture du pick-and-roll\n01:20 – rotation défensive'} className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
               <input name="tags" placeholder="Tags, comma separated" className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <input name="timestampLabel" placeholder="Timestamp (00:34)" className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
@@ -1010,9 +1014,6 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                         <Play className="w-3.5 h-3.5 text-amber-400" />
                         <span>{vid.title}</span>
                       </h4>
-                      {vid.description && (
-                        <p className="text-xs text-slate-400 mt-1">{vid.description}</p>
-                      )}
                     </div>
                     <a
                       href={vid.videoUrl}
@@ -1025,31 +1026,12 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                     </a>
                   </div>
 
-                  {/* Interactive Timestamps */}
-                  <div className="space-y-2 pt-2 border-t border-[#1C263B]">
-                    <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
-                      Horodatages & Observations
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                      {vid.timestamps.map((ts, idx) => (
-                        <div
-                          key={idx}
-                          className="p-2.5 rounded bg-[#131C2D] border border-[#202E4A] flex items-start gap-2.5 text-xs"
-                        >
-                          <a
-                            href={`${vid.videoUrl}&t=${ts.seconds}s`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="font-mono font-bold text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded border border-amber-400/20 hover:bg-amber-400/20 shrink-0"
-                            title="Jump to play in video"
-                          >
-                            {ts.label}
-                          </a>
-                          <span className="text-slate-300 leading-snug">{ts.note}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <FilmSequencePlayer
+                    videoUrl={vid.videoUrl}
+                    description={vid.description}
+                    timestamps={vid.timestamps}
+                    heading="Horodatages & Observations"
+                  />
                 </div>
               ))}
             </div>
