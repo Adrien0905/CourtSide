@@ -25,7 +25,9 @@ type SortField =
   | 'age'
   | 'status'
   | 'grade'
-  | 'ppg';
+  | 'ppg'
+  | 'rpg'
+  | 'apg';
 
 export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
   onOpenNewProspectModal,
@@ -157,6 +159,14 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
           case 'ppg':
             aVal = a.stats[0]?.ppg || 0;
             bVal = b.stats[0]?.ppg || 0;
+            break;
+          case 'rpg':
+            aVal = a.stats[0]?.rpg || 0;
+            bVal = b.stats[0]?.rpg || 0;
+            break;
+          case 'apg':
+            aVal = a.stats[0]?.apg || 0;
+            bVal = b.stats[0]?.apg || 0;
             break;
         }
 
@@ -358,13 +368,13 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
       {/* Main Prospects Table */}
       <div className="bg-[#111827] border border-[#1E293B] rounded-lg overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm border-collapse">
+          <table className="w-full text-left text-sm border-collapse [&_th]:align-middle [&_td]:align-middle">
             <thead>
               <tr className="bg-[#0E1422] border-b border-[#1E293B] text-base font-bold uppercase tracking-wider text-slate-400 select-none">
                 <th className="py-3 px-4 w-12 text-center">Compare</th>
                 <th
                   onClick={() => handleSort('name')}
-                  className="py-3 px-4 cursor-pointer hover:text-amber-400 transition-colors"
+                  className="py-3 px-4 min-w-[200px] cursor-pointer hover:text-amber-400 transition-colors"
                 >
                   <div className="flex items-center gap-1.5">
                     <span>Prospect Name</span>
@@ -391,7 +401,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
                 </th>
                 <th
                   onClick={() => handleSort('height')}
-                  className="py-3 px-3 cursor-pointer hover:text-amber-400 transition-colors font-mono"
+                  className="py-3 px-3 cursor-pointer hover:text-amber-400 transition-colors font-mono whitespace-nowrap"
                 >
                   Ht / Wt
                 </th>
@@ -412,12 +422,26 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
                   </th>
                 )}
                 {showStats && (
-                  <th
-                    onClick={() => handleSort('ppg')}
-                    className="py-3 px-4 min-w-[19rem] cursor-pointer hover:text-amber-400 transition-colors font-mono text-center"
-                  >
-                    PPG / RPG / APG
-                  </th>
+                  <>
+                    <th
+                      onClick={() => handleSort('ppg')}
+                      className="py-3 px-3 cursor-pointer hover:text-amber-400 transition-colors font-mono text-center whitespace-nowrap"
+                    >
+                      PPG
+                    </th>
+                    <th
+                      onClick={() => handleSort('rpg')}
+                      className="py-3 px-3 cursor-pointer hover:text-amber-400 transition-colors font-mono text-center whitespace-nowrap"
+                    >
+                      RPG
+                    </th>
+                    <th
+                      onClick={() => handleSort('apg')}
+                      className="py-3 px-3 cursor-pointer hover:text-amber-400 transition-colors font-mono text-center whitespace-nowrap"
+                    >
+                      APG
+                    </th>
+                  </>
                 )}
                 <th
                   onClick={() => handleSort('status')}
@@ -431,7 +455,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
             <tbody className="divide-y divide-[#182338]">
               {filteredProspects.length === 0 ? (
                 <tr>
-                  <td colSpan={7 + Number(showWingspan) + Number(showAge) + Number(showStats) + Number(showTags)} className="py-12 text-center text-slate-400">
+                  <td colSpan={7 + Number(showWingspan) + Number(showAge) + (showStats ? 3 : 0) + Number(showTags)} className="py-12 text-center text-slate-400">
                     <p className="text-sm font-medium">No prospects found</p>
                     <p className="text-sm text-slate-400 mt-1">
                       Adjust your filters or add a new prospect to your database.
@@ -473,15 +497,15 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
                       </td>
 
                       {/* Name & Draft Year */}
-                      <td className="py-2.5 px-4">
+                      <td className="py-2.5 px-4 min-w-[200px]">
                         <div className="flex items-center gap-2.5">
                           <PlayerAvatar
                             firstName={p.firstName}
                             lastName={p.lastName}
                             avatarUrl={p.avatarUrl}
                           />
-                          <div>
-                            <div className="font-bold text-white group-hover:text-amber-400 transition-colors">
+                          <div className="min-w-0">
+                            <div className="font-bold text-white group-hover:text-amber-400 transition-colors whitespace-nowrap">
                               {p.firstName} {p.lastName}
                             </div>
                             <div className="text-sm text-slate-400 font-mono">
@@ -509,7 +533,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
                       </td>
 
                       {/* Height & Weight */}
-                      <td className="py-2.5 px-3 font-mono text-slate-300 tabular-nums">
+                      <td className="py-2.5 px-3 font-mono text-slate-300 tabular-nums whitespace-nowrap">
                         {p.measurements.heightFormatted || '—'} · {p.measurements.weightLbs ? `${p.measurements.weightLbs} lbs` : '—'}
                       </td>
 
@@ -529,17 +553,17 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
 
                       {/* Stats */}
                       {showStats && (
-                        <td className="py-2.5 px-4 min-w-[19rem] font-mono tabular-nums text-slate-200">
-                          {stat ? (
-                            <span className="grid grid-cols-3 gap-x-4 whitespace-nowrap text-center">
-                              <span><strong className="text-white">{stat.ppg == null ? '—' : stat.ppg.toFixed(1)}</strong> <span className="text-sm text-slate-500">PPG</span></span>
-                              <span><strong className="text-white">{stat.rpg == null ? '—' : stat.rpg.toFixed(1)}</strong> <span className="text-sm text-slate-500">RPG</span></span>
-                              <span><strong className="text-white">{stat.apg == null ? '—' : stat.apg.toFixed(1)}</strong> <span className="text-sm text-slate-500">APG</span></span>
-                            </span>
-                          ) : (
-                            <span className="block text-right text-slate-400">—</span>
-                          )}
-                        </td>
+                        <>
+                          <td className="py-2.5 px-3 text-center font-mono tabular-nums text-white">
+                            {stat?.ppg == null ? '—' : stat.ppg.toFixed(1)}
+                          </td>
+                          <td className="py-2.5 px-3 text-center font-mono tabular-nums text-white">
+                            {stat?.rpg == null ? '—' : stat.rpg.toFixed(1)}
+                          </td>
+                          <td className="py-2.5 px-3 text-center font-mono tabular-nums text-white">
+                            {stat?.apg == null ? '—' : stat.apg.toFixed(1)}
+                          </td>
+                        </>
                       )}
 
                       {/* Status */}
@@ -552,7 +576,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
                       {/* Tags */}
                       {showTags && (
                         <td className="py-2.5 px-4">
-                          <div className="flex flex-wrap gap-1 max-w-xs">
+                          <div className="flex flex-row flex-wrap items-center gap-1">
                             {p.tags.slice(0, 2).map((t) => (
                               <span
                                 key={t}
