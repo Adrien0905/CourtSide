@@ -14,7 +14,6 @@ import { PlayerDossierView } from './components/dossier/PlayerDossierView';
 import { ScoutingReportsView } from './components/reports/ScoutingReportsView';
 import { DraftBoardView } from './components/draftboard/DraftBoardView';
 import { PlayerComparisonView } from './components/comparison/PlayerComparisonView';
-import { GameLogView } from './components/gamelog/GameLogView';
 import { VideoLibraryView } from './components/video/VideoLibraryView';
 import { SettingsView } from './components/settings/SettingsView';
 import { NewProspectModal } from './components/prospects/NewProspectModal';
@@ -74,8 +73,6 @@ const AppContent: React.FC = () => {
         return <DraftBoardView />;
       case 'comparison':
         return <PlayerComparisonView />;
-      case 'gamelog':
-        return <GameLogView />;
       case 'video':
         return <VideoLibraryView />;
       case 'settings':

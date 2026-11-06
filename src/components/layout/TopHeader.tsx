@@ -67,8 +67,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onOpenNewProspectModal }) 
         return 'My Draft Board';
       case 'comparison':
         return 'Prospect Comparison Matrix';
-      case 'gamelog':
-        return 'Game Log & Film Study';
       case 'video':
         return 'Video Library & Timestamps';
       case 'settings':

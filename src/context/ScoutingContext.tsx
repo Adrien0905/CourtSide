@@ -14,13 +14,12 @@ export type ActiveView =
   | 'database'
   | 'dossier'
   | 'reports'
-  | 'gamelog'
   | 'video'
   | 'draftboard'
   | 'comparison'
   | 'settings';
 
-export type DossierTab = 'overview' | 'statistics' | 'scouting' | 'gamelog' | 'video' | 'history';
+export type DossierTab = 'overview' | 'statistics' | 'scouting' | 'video' | 'history';
 
 interface ScoutingContextType {
   // Navigation & Active items
