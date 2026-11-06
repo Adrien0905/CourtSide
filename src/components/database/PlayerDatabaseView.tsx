@@ -496,7 +496,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
                         />
                       </td>
 
-                      {/* Name & Draft Year */}
+                      {/* Name */}
                       <td className="py-2.5 px-4 min-w-[200px]">
                         <div className="flex items-center gap-2.5">
                           <PlayerAvatar
@@ -504,14 +504,9 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
                             lastName={p.lastName}
                             avatarUrl={p.avatarUrl}
                           />
-                          <div className="min-w-0">
-                            <div className="font-bold text-white group-hover:text-amber-400 transition-colors whitespace-nowrap">
-                              {p.firstName} {p.lastName}
-                            </div>
-                            <div className="text-sm text-slate-400 font-mono">
-                              Class of {p.draftYear} · {p.nationality}
-                            </div>
-                          </div>
+                          <span className="font-bold text-white group-hover:text-amber-400 transition-colors whitespace-nowrap">
+                            {p.firstName} {p.lastName}
+                          </span>
                         </div>
                       </td>
 
