@@ -32,6 +32,7 @@ export const NewProspectModal: React.FC<NewProspectModalProps> = ({ isOpen, onCl
 
   const [status, setStatus] = useState<ProspectStatus>('To Observe');
   const [tagsInput, setTagsInput] = useState('Perimeter Wing, Class of 2027');
+  const [avatarUrl, setAvatarUrl] = useState('');
 
   if (!isOpen) return null;
 
@@ -86,6 +87,7 @@ export const NewProspectModal: React.FC<NewProspectModalProps> = ({ isOpen, onCl
       currentLeague: league,
       status,
       tags,
+      avatarUrl: avatarUrl.trim() || undefined,
     });
 
     onClose();
@@ -146,6 +148,19 @@ export const NewProspectModal: React.FC<NewProspectModalProps> = ({ isOpen, onCl
                 className="w-full bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white focus:outline-none focus:border-amber-500"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
+              Photo URL
+            </label>
+            <input
+              type="url"
+              value={avatarUrl}
+              onChange={(e) => setAvatarUrl(e.target.value)}
+              placeholder="https://..."
+              className="w-full bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white focus:outline-none focus:border-amber-500"
+            />
           </div>
 
           {/* Positions & Team */}

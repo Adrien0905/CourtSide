@@ -29,6 +29,7 @@ export const EditProspectModal: React.FC<EditProspectModalProps> = ({ prospect, 
   const [wingspanFeet, setWingspanFeet] = useState(0);
   const [wingspanInches, setWingspanInches] = useState(0);
   const [tagsInput, setTagsInput] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -46,6 +47,7 @@ export const EditProspectModal: React.FC<EditProspectModalProps> = ({ prospect, 
     setWingspanFeet(wingspan.feet);
     setWingspanInches(wingspan.inches);
     setTagsInput(prospect.tags.join(', '));
+    setAvatarUrl(prospect.avatarUrl || '');
     setError('');
   }, [prospect]);
 
@@ -65,6 +67,7 @@ export const EditProspectModal: React.FC<EditProspectModalProps> = ({ prospect, 
         primaryPosition: primaryPos,
         currentTeam: team.trim(),
         tags: tagsInput.split(',').map((tag) => tag.trim()).filter(Boolean),
+        avatarUrl: avatarUrl.trim(),
         measurements: {
           ...prospect.measurements,
           heightInches: heightTotal,
@@ -116,6 +119,7 @@ export const EditProspectModal: React.FC<EditProspectModalProps> = ({ prospect, 
             </span>
           </label>
           <input value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} placeholder="Tags, comma separated" className="col-span-2 bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
+          <input value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} placeholder="Photo URL (https://...)" className="col-span-2 bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
         </div>
         {error && <p className="text-xs text-rose-300">{error}</p>}
         <div className="flex justify-end gap-2">

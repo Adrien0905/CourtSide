@@ -234,6 +234,7 @@ for (const statement of [
   'ALTER TABLE prospects ADD COLUMN external_cbb_id TEXT',
   'ALTER TABLE prospects ADD COLUMN external_cbd_id TEXT',
   'ALTER TABLE prospects ADD COLUMN source_provider TEXT',
+  'ALTER TABLE prospects ADD COLUMN avatar_url TEXT',
 ]) {
   try {
     db.prepare(statement).run();

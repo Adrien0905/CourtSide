@@ -39,6 +39,7 @@ function fmtShot(value: number | null | undefined): string {
   return `${(Number(value) * 100).toFixed(1)}%`;
 }
 import { RadarChart, categoryRadarPoints } from '../common/RadarChart';
+import { PlayerAvatar } from '../common/PlayerAvatar';
 import { FilmSequencePlayer } from '../video/FilmSequencePlayer';
 import { EditProspectModal } from '../prospects/EditProspectModal';
 import { collectClipMarkers, parseTimeToSeconds } from '../../lib/videoTime';
@@ -214,10 +215,12 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           {/* Avatar & Biographical Information */}
           <div className="flex items-start gap-5">
-            <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-[#1A253D] to-[#121A2C] border-2 border-[#243452] flex items-center justify-center text-2xl font-bold font-mono text-amber-400 shadow-md shrink-0">
-              {p.firstName[0]}
-              {p.lastName[0]}
-            </div>
+            <PlayerAvatar
+              firstName={p.firstName}
+              lastName={p.lastName}
+              avatarUrl={p.avatarUrl}
+              size="lg"
+            />
 
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2.5">
@@ -308,14 +311,6 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
               {isCompared ? '✓ Selected in Matrix' : '+ Compare'}
             </button>
 
-            {/* Add Report button */}
-            <button
-              onClick={onOpenNewReportModal}
-              className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs rounded-md transition-colors flex items-center gap-1.5 shadow-sm"
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>Add Report</span>
-            </button>
             <button
               onClick={() => setIsEditingProfile(true)}
               className="px-3 py-1.5 bg-[#151D2F] hover:bg-[#1C2740] text-slate-200 border border-[#23314D] text-xs font-medium rounded-md"

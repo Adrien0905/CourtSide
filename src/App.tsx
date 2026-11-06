@@ -90,7 +90,7 @@ const AppContent: React.FC = () => {
 
       {/* Main Viewport */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
-        <TopHeader onOpenNewProspectModal={() => setIsProspectModalOpen(true)} />
+        <TopHeader />
 
         <main className="flex-1 overflow-y-auto bg-[#0B0F17]">
           {renderActiveView()}

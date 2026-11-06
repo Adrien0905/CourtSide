@@ -9,6 +9,7 @@ import {
 import { useScouting } from '../../context/ScoutingContext';
 import { Position, ProspectStatus, LeagueCategory } from '../../types/scouting';
 import { DataSyncPanel } from '../settings/DataSyncPanel';
+import { PlayerAvatar } from '../common/PlayerAvatar';
 
 interface PlayerDatabaseViewProps {
   onOpenNewProspectModal: () => void;
@@ -413,7 +414,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
                 {showStats && (
                   <th
                     onClick={() => handleSort('ppg')}
-                    className="py-3 px-4 min-w-[19rem] cursor-pointer hover:text-amber-400 transition-colors font-mono text-right"
+                    className="py-3 px-4 min-w-[19rem] cursor-pointer hover:text-amber-400 transition-colors font-mono text-center"
                   >
                     PPG / RPG / APG
                   </th>
@@ -473,11 +474,20 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
 
                       {/* Name & Draft Year */}
                       <td className="py-2.5 px-4">
-                        <div className="font-bold text-white group-hover:text-amber-400 transition-colors">
-                          {p.firstName} {p.lastName}
-                        </div>
-                        <div className="text-[10px] text-slate-400 font-mono">
-                          Class of {p.draftYear} · {p.nationality}
+                        <div className="flex items-center gap-2.5">
+                          <PlayerAvatar
+                            firstName={p.firstName}
+                            lastName={p.lastName}
+                            avatarUrl={p.avatarUrl}
+                          />
+                          <div>
+                            <div className="font-bold text-white group-hover:text-amber-400 transition-colors">
+                              {p.firstName} {p.lastName}
+                            </div>
+                            <div className="text-[10px] text-slate-400 font-mono">
+                              Class of {p.draftYear} · {p.nationality}
+                            </div>
+                          </div>
                         </div>
                       </td>
 
@@ -521,10 +531,10 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
                       {showStats && (
                         <td className="py-2.5 px-4 min-w-[19rem] font-mono tabular-nums text-slate-200">
                           {stat ? (
-                            <span className="grid grid-cols-3 gap-x-4 whitespace-nowrap">
-                              <span className="text-right"><strong className="text-white">{stat.ppg == null ? '—' : stat.ppg.toFixed(1)}</strong> <span className="text-[10px] text-slate-500">PPG</span></span>
-                              <span className="text-right"><strong className="text-white">{stat.rpg == null ? '—' : stat.rpg.toFixed(1)}</strong> <span className="text-[10px] text-slate-500">RPG</span></span>
-                              <span className="text-right"><strong className="text-white">{stat.apg == null ? '—' : stat.apg.toFixed(1)}</strong> <span className="text-[10px] text-slate-500">APG</span></span>
+                            <span className="grid grid-cols-3 gap-x-4 whitespace-nowrap text-center">
+                              <span><strong className="text-white">{stat.ppg == null ? '—' : stat.ppg.toFixed(1)}</strong> <span className="text-[10px] text-slate-500">PPG</span></span>
+                              <span><strong className="text-white">{stat.rpg == null ? '—' : stat.rpg.toFixed(1)}</strong> <span className="text-[10px] text-slate-500">RPG</span></span>
+                              <span><strong className="text-white">{stat.apg == null ? '—' : stat.apg.toFixed(1)}</strong> <span className="text-[10px] text-slate-500">APG</span></span>
                             </span>
                           ) : (
                             <span className="block text-right text-slate-400">—</span>
@@ -534,7 +544,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
 
                       {/* Status */}
                       <td className="py-2.5 px-3 text-center whitespace-nowrap">
-                        <span className="inline-flex items-center justify-center whitespace-nowrap min-w-[6.75rem] text-[10px] font-medium px-2.5 py-0.5 rounded bg-[#182337] text-slate-300 border border-[#253450]">
+                        <span className="inline-flex items-center justify-center whitespace-nowrap min-w-[7.5rem] text-[10px] font-medium px-3 py-1 rounded bg-[#182337] text-slate-300 border border-[#253450]">
                           {p.status}
                         </span>
                       </td>

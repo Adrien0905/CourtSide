@@ -1,12 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Download, Plus, ChevronRight, User, X } from 'lucide-react';
+import { Search, Download, ChevronRight, X } from 'lucide-react';
 import { useScouting } from '../../context/ScoutingContext';
 
-interface TopHeaderProps {
-  onOpenNewProspectModal: () => void;
-}
-
-export const TopHeader: React.FC<TopHeaderProps> = ({ onOpenNewProspectModal }) => {
+export const TopHeader: React.FC = () => {
   const {
     activeView,
     activeProspect,
@@ -163,14 +159,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onOpenNewProspectModal }) 
         >
           <Download className="w-3.5 h-3.5 text-amber-400" />
           <span>Export JSON</span>
-        </button>
-
-        <button
-          onClick={onOpenNewProspectModal}
-          className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold rounded-md text-xs transition-colors flex items-center gap-1.5 shadow-sm"
-        >
-          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-          <span>New Prospect</span>
         </button>
       </div>
     </header>
