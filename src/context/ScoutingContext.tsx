@@ -521,11 +521,15 @@ export const ScoutingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     );
 
     try {
-      await fetch('/api/videos', {
+      const res = await fetch('/api/videos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newVideo),
       });
+      if (res.ok) {
+        const saved = await res.json();
+        setVideos((prev) => prev.map((clip) => (clip.id === id ? { ...clip, ...saved, id } : clip)));
+      }
     } catch (err) {
       console.warn('Could not save video clip to SQLite API:', err);
     }

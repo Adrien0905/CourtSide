@@ -8,6 +8,7 @@ import { registerNcaaRoutes } from './server/ncaaProxy.ts';
 import { registerCsvRoutes } from './server/csvRoutes.ts';
 import { loadCollapsedSeasonStats } from './server/csvEngine.ts';
 import { normalizeSeasonLabel } from './src/lib/seasonStats.ts';
+import { collectClipMarkers, extractYouTubeId } from './src/lib/videoTime.ts';
 
 const app = express();
 const PORT = 3000;
@@ -960,7 +961,10 @@ app.get('/api/videos', (req, res) => {
       platform: v.platform,
       description: v.description,
       tags: v.tags ? JSON.parse(v.tags) : [],
-      timestamps: v.timestamps ? JSON.parse(v.timestamps) : [],
+      timestamps: collectClipMarkers({
+        timestamps: v.timestamps ? JSON.parse(v.timestamps) : [],
+        description: v.description || '',
+      }),
       createdAt: v.created_at,
     })));
   } catch (err: any) {
@@ -973,6 +977,11 @@ app.post('/api/videos', (req, res) => {
     const v = req.body;
     const id = v.id || `vid-${Date.now()}`;
     const now = new Date().toISOString();
+    const timestamps = collectClipMarkers({
+      timestamps: v.timestamps || [],
+      description: v.description || '',
+    });
+    const platform = extractYouTubeId(v.videoUrl || '') ? 'youtube' : (v.platform || 'other');
 
     db.prepare(`
       INSERT INTO video_clips (id, prospect_id, title, video_url, platform, description, tags, timestamps, created_at)
@@ -982,14 +991,14 @@ app.post('/api/videos', (req, res) => {
       v.prospectId,
       v.title,
       v.videoUrl,
-      v.platform || 'youtube',
+      platform,
       v.description || null,
       JSON.stringify(v.tags || []),
-      JSON.stringify(v.timestamps || []),
+      JSON.stringify(timestamps),
       now
     );
 
-    res.status(201).json({ id, ...v, createdAt: now });
+    res.status(201).json({ id, ...v, platform, timestamps, createdAt: now });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -1127,7 +1136,10 @@ app.get('/api/backups', (req, res) => {
       platform: v.platform,
       description: v.description,
       tags: v.tags ? JSON.parse(v.tags) : [],
-      timestamps: v.timestamps ? JSON.parse(v.timestamps) : [],
+      timestamps: collectClipMarkers({
+        timestamps: v.timestamps ? JSON.parse(v.timestamps) : [],
+        description: v.description || '',
+      }),
       createdAt: v.created_at,
     }));
     const draftBoard = (db.prepare('SELECT * FROM draft_boards ORDER BY rank ASC').all() as any[]).map((b) => ({
@@ -1419,7 +1431,10 @@ app.post('/api/backups', (req, res) => {
             v.platform || 'youtube',
             v.description || null,
             JSON.stringify(v.tags || []),
-            JSON.stringify(v.timestamps || []),
+            JSON.stringify(collectClipMarkers({
+              timestamps: v.timestamps || [],
+              description: v.description || '',
+            })),
             v.createdAt || new Date().toISOString()
           );
         }
