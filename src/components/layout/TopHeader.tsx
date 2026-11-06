@@ -73,25 +73,25 @@ export const TopHeader: React.FC = () => {
   };
 
   return (
-    <header className="h-14 border-b border-[#1E293B] bg-[#0E1322] px-6 flex items-center justify-between gap-6 shrink-0 z-20">
+    <header className="h-16 border-b border-[#1E293B] bg-[#0E1322] px-8 flex items-center justify-between gap-6 shrink-0 z-20">
       {/* Zone 1: Breadcrumb */}
-      <div className="flex items-center gap-2 text-xs">
+      <div className="flex items-center gap-2 text-base">
         <span className="text-slate-400 font-medium">COURTSIDE</span>
         <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
         <span className="text-slate-200 font-semibold tracking-wide">
           {getViewTitle()}
         </span>
         {activeView === 'dossier' && activeProspect && (
-          <span className="text-xs font-mono text-amber-400 font-bold ml-1 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
+          <span className="text-sm font-mono text-amber-400 font-bold ml-1 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
             {activeProspect.primaryPosition} · {activeProspect.currentTeam}
           </span>
         )}
       </div>
 
       {/* Zone 2: Global Search */}
-      <div className="flex-1 max-w-md relative" ref={searchRef}>
+      <div className="flex-1 max-w-xl relative" ref={searchRef}>
         <div className="relative">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={searchTerm}
@@ -101,7 +101,7 @@ export const TopHeader: React.FC = () => {
             }}
             onFocus={() => setSearchOpen(true)}
             placeholder="Search prospects (e.g. Morgan, State, Wing, SF)..."
-            className="w-full bg-[#141B2D] border border-[#23314D] rounded-md pl-9 pr-8 py-1.5 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-amber-500/80 transition-colors"
+            className="w-full bg-[#141B2D] border border-[#23314D] rounded-md pl-10 pr-8 py-2 text-base text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-amber-500/80 transition-colors"
           />
           {searchTerm && (
             <button
@@ -117,7 +117,7 @@ export const TopHeader: React.FC = () => {
         {searchOpen && searchTerm.trim().length > 0 && (
           <div className="absolute top-full left-0 right-0 mt-1.5 bg-[#12192A] border border-[#243350] rounded-md shadow-2xl py-1.5 max-h-72 overflow-y-auto z-50">
             {filteredProspects.length === 0 ? (
-              <div className="px-4 py-3 text-xs text-slate-400 text-center">
+              <div className="px-4 py-3 text-sm text-slate-400 text-center">
                 No prospects found for "{searchTerm}".
               </div>
             ) : (
@@ -125,7 +125,7 @@ export const TopHeader: React.FC = () => {
                 <button
                   key={p.id}
                   onClick={() => handleSelectProspect(p.id)}
-                  className="w-full px-3 py-2 text-left hover:bg-[#1A243B] flex items-center justify-between text-xs transition-colors border-b border-[#1A2337] last:border-0"
+                  className="w-full px-3 py-2.5 text-left hover:bg-[#1A243B] flex items-center justify-between text-sm transition-colors border-b border-[#1A2337] last:border-0"
                 >
                   <div className="flex items-center gap-2.5">
                     <div className="w-6 h-6 rounded bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px] font-bold text-amber-400">
@@ -155,7 +155,7 @@ export const TopHeader: React.FC = () => {
         <button
           onClick={exportJSONBackup}
           title="Backup all data to JSON file"
-          className="px-3 py-1.5 bg-[#162035] hover:bg-[#1E2B47] text-slate-300 border border-[#23314D] rounded-md text-xs font-medium transition-colors flex items-center gap-1.5"
+          className="px-3.5 py-2 bg-[#162035] hover:bg-[#1E2B47] text-slate-300 border border-[#23314D] rounded-md text-sm font-medium transition-colors flex items-center gap-1.5"
         >
           <Download className="w-3.5 h-3.5 text-amber-400" />
           <span>Export JSON</span>

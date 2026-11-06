@@ -41,85 +41,85 @@ export const DashboardView: React.FC = () => {
   };
 
   return (
-    <div className="p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="min-h-full w-full px-8 py-6 space-y-6">
       {/* Welcome Banner */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2.5">
+          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
             <span>Scout Command Center</span>
-            <span className="text-xs font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold">
+            <span className="text-sm font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold">
               Class of 2027
             </span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-sm text-slate-400 mt-1">
             Personal talent intelligence database for tracking, grading, and ranking prospects.
           </p>
         </div>
       </div>
 
       {/* KPI Cards Strip */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5">
-        <div className="bg-[#111827] border border-[#1F293D] rounded-lg p-3.5">
-          <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5">
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+        <div className="bg-[#111827] border border-[#1F293D] rounded-lg p-5">
+          <div className="flex items-center justify-between text-slate-400 text-sm mb-1.5">
             <span>Total Prospects</span>
-            <Users className="w-4 h-4 text-slate-500" />
+            <Users className="w-5 h-5 text-slate-500" />
           </div>
-          <div className="text-2xl font-bold font-mono text-white tabular-nums">
+          <div className="text-3xl font-bold font-mono text-white tabular-nums">
             {prospects.length}
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">
+          <div className="text-sm text-slate-400 mt-1">
             Tracked in database
           </div>
         </div>
 
-        <div className="bg-[#111827] border border-[#1F293D] rounded-lg p-3.5">
-          <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5">
+        <div className="bg-[#111827] border border-[#1F293D] rounded-lg p-5">
+          <div className="flex items-center justify-between text-slate-400 text-sm mb-1.5">
             <span>Scouting Reports</span>
-            <FileSpreadsheet className="w-4 h-4 text-amber-400" />
+            <FileSpreadsheet className="w-5 h-5 text-amber-400" />
           </div>
-          <div className="text-2xl font-bold font-mono text-amber-400 tabular-nums">
+          <div className="text-3xl font-bold font-mono text-amber-400 tabular-nums">
             {reports.length}
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">
+          <div className="text-sm text-slate-400 mt-1">
             In-depth evaluations
           </div>
         </div>
 
-        <div className="bg-[#111827] border border-[#1F293D] rounded-lg p-3.5">
-          <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5">
+        <div className="bg-[#111827] border border-[#1F293D] rounded-lg p-5">
+          <div className="flex items-center justify-between text-slate-400 text-sm mb-1.5">
             <span>Video Clips</span>
-            <Film className="w-4 h-4 text-sky-400" />
+            <Film className="w-5 h-5 text-sky-400" />
           </div>
-          <div className="text-2xl font-bold font-mono text-white tabular-nums">
+          <div className="text-3xl font-bold font-mono text-white tabular-nums">
             {videos.length}
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">
+          <div className="text-sm text-slate-400 mt-1">
             Timestamped film studies
           </div>
         </div>
 
-        <div className="bg-[#111827] border border-[#1F293D] rounded-lg p-3.5">
-          <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5">
+        <div className="bg-[#111827] border border-[#1F293D] rounded-lg p-5">
+          <div className="flex items-center justify-between text-slate-400 text-sm mb-1.5">
             <span>Draft Board</span>
-            <Trophy className="w-4 h-4 text-emerald-400" />
+            <Trophy className="w-5 h-5 text-emerald-400" />
           </div>
-          <div className="text-2xl font-bold font-mono text-white tabular-nums">
+          <div className="text-3xl font-bold font-mono text-white tabular-nums">
             {draftBoard.length}
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">
+          <div className="text-sm text-slate-400 mt-1">
             Prospects on personal board
           </div>
         </div>
 
-        <div className="bg-[#111827] border border-[#1F293D] rounded-lg p-3.5">
-          <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5">
+        <div className="bg-[#111827] border border-[#1F293D] rounded-lg p-5">
+          <div className="flex items-center justify-between text-slate-400 text-sm mb-1.5">
             <span>Pending Eval</span>
-            <AlertCircle className="w-4 h-4 text-amber-500" />
+            <AlertCircle className="w-5 h-5 text-amber-500" />
           </div>
-          <div className="text-2xl font-bold font-mono text-amber-400 tabular-nums">
+          <div className="text-3xl font-bold font-mono text-amber-400 tabular-nums">
             {unevaluatedCount}
           </div>
-          <div className="text-[11px] text-slate-400 mt-1">
+          <div className="text-sm text-slate-400 mt-1">
             Awaiting full scout report
           </div>
         </div>
@@ -134,13 +134,13 @@ export const DashboardView: React.FC = () => {
             <div className="px-5 py-3.5 border-b border-[#1F293D] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4 text-amber-400" />
-                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+                <h2 className="text-base font-bold uppercase tracking-wider text-slate-200">
                   Recent Prospects Database
                 </h2>
               </div>
               <button
                 onClick={() => setActiveView('database')}
-                className="text-xs text-amber-400 hover:text-amber-300 font-medium flex items-center gap-1 transition-colors"
+                className="text-sm text-amber-400 hover:text-amber-300 font-medium flex items-center gap-1 transition-colors"
               >
                 <span>View All ({prospects.length})</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -155,19 +155,19 @@ export const DashboardView: React.FC = () => {
                   className="px-5 py-3 hover:bg-[#151E31] transition-colors flex items-center justify-between cursor-pointer group"
                 >
                   <div className="flex items-center gap-3.5">
-                    <div className="w-9 h-9 rounded-md bg-[#182238] border border-[#243352] flex items-center justify-center text-xs font-bold font-mono text-amber-400 group-hover:border-amber-500/50 transition-colors">
+                    <div className="w-9 h-9 rounded-md bg-[#182238] border border-[#243352] flex items-center justify-center text-sm font-bold font-mono text-amber-400 group-hover:border-amber-500/50 transition-colors">
                       {p.primaryPosition}
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-white group-hover:text-amber-400 transition-colors flex items-center gap-2">
+                      <div className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors flex items-center gap-2">
                         <span>{p.firstName} {p.lastName}</span>
                         {p.latestReport && (
-                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                          <span className="text-sm font-mono px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">
                             Grade: {p.latestReport.overallGrade.toFixed(1)}
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
+                      <div className="text-sm text-slate-400 flex items-center gap-2 mt-0.5">
                         <span>{p.currentTeam}</span>
                         <span aria-hidden="true">·</span>
                         <span>{p.measurements.heightFormatted}</span>
@@ -179,14 +179,14 @@ export const DashboardView: React.FC = () => {
 
                   <div className="flex items-center gap-4">
                     <div className="text-right hidden sm:block">
-                      <div className="text-[11px] font-mono text-slate-300">
+                      <div className="text-sm font-mono text-slate-300">
                         Class of {p.draftYear}
                       </div>
-                      <div className="text-[10px] text-slate-400">
+                      <div className="text-sm text-slate-400">
                         {p.reportsCount} report{p.reportsCount !== 1 ? 's' : ''}
                       </div>
                     </div>
-                    <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-[#182338] text-slate-300 border border-[#243350]">
+                    <span className="text-sm font-medium px-2 py-0.5 rounded bg-[#182338] text-slate-300 border border-[#243350]">
                       {p.status}
                     </span>
                   </div>
@@ -200,7 +200,7 @@ export const DashboardView: React.FC = () => {
             <div className="px-5 py-3.5 border-b border-[#1F293D] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <FileSpreadsheet className="w-4 h-4 text-amber-400" />
-                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+                <h2 className="text-base font-bold uppercase tracking-wider text-slate-200">
                   Latest In-Depth Scouting Reports
                 </h2>
               </div>
@@ -209,7 +209,7 @@ export const DashboardView: React.FC = () => {
                   const latest = reports[0];
                   if (latest) openProspect(latest.prospectId, 'scouting');
                 }}
-                className="text-xs text-amber-400 hover:text-amber-300 font-medium flex items-center gap-1 transition-colors"
+                className="text-sm text-amber-400 hover:text-amber-300 font-medium flex items-center gap-1 transition-colors"
               >
                 <span>All Reports ({reports.length})</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -218,9 +218,9 @@ export const DashboardView: React.FC = () => {
 
             <div className="divide-y divide-[#1B2436]">
               {reports.length === 0 ? (
-                <div className="p-6 text-center text-xs text-slate-400">
+                <div className="p-6 text-center text-sm text-slate-400">
                   <p className="font-medium text-slate-300">No scouting reports authored yet</p>
-                  <p className="text-[11px] text-slate-400 mt-1">
+                  <p className="text-sm text-slate-400 mt-1">
                     Select a prospect and click &ldquo;Create Report&rdquo; to begin subjective evaluation.
                   </p>
                 </div>
@@ -235,28 +235,28 @@ export const DashboardView: React.FC = () => {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-white group-hover:text-amber-400 transition-colors">
+                          <span className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors">
                             {prospect ? `${prospect.firstName} ${prospect.lastName}` : 'Prospect Report'}
                           </span>
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">
+                          <span className="text-sm font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">
                             {r.overallGrade.toFixed(1)} / 10
                           </span>
                         </div>
-                        <span className="text-[11px] font-mono text-slate-400">
+                        <span className="text-sm font-mono text-slate-400">
                           {r.reportDate}
                         </span>
                       </div>
 
-                      <div className="text-xs text-amber-300 font-medium">
+                      <div className="text-sm text-amber-300 font-medium">
                         {r.nbaArchetype}
                       </div>
 
-                      <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                      <p className="text-sm text-slate-400 line-clamp-2 leading-relaxed">
                         {r.executiveSummary}
                       </p>
 
                       {(r.ceiling || r.playerComparisons.length > 0) && (
-                        <div className="flex items-center gap-3 pt-1 text-[11px] text-slate-400">
+                        <div className="flex items-center gap-3 pt-1 text-sm text-slate-400">
                           {r.ceiling && <span>Ceiling: {r.ceiling}</span>}
                           {r.ceiling && r.playerComparisons.length > 0 && <span aria-hidden="true">·</span>}
                           {r.playerComparisons.length > 0 && <span>Comps: {r.playerComparisons.join(', ')}</span>}
@@ -277,13 +277,13 @@ export const DashboardView: React.FC = () => {
             <div className="px-5 py-3.5 border-b border-[#1F293D] flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Trophy className="w-4 h-4 text-amber-400" />
-                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+                <h2 className="text-base font-bold uppercase tracking-wider text-slate-200">
                   Draft Board Top 5
                 </h2>
               </div>
               <button
                 onClick={() => setActiveView('draftboard')}
-                className="text-xs text-amber-400 hover:text-amber-300 font-medium flex items-center gap-1 transition-colors"
+                className="text-sm text-amber-400 hover:text-amber-300 font-medium flex items-center gap-1 transition-colors"
               >
                 <span>Full Board</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -292,7 +292,7 @@ export const DashboardView: React.FC = () => {
 
             <div className="divide-y divide-[#1B2436]">
               {draftBoardProspects.length === 0 ? (
-                <div className="p-6 text-center text-xs text-slate-400">
+                <div className="p-6 text-center text-sm text-slate-400">
                   No prospects ranked yet. Add prospects to your Draft Board.
                 </div>
               ) : (
@@ -305,21 +305,21 @@ export const DashboardView: React.FC = () => {
                       className="px-4 py-3 hover:bg-[#151E31] transition-colors flex items-center justify-between cursor-pointer group"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded bg-amber-500/10 border border-amber-500/30 flex items-center justify-center font-mono font-bold text-xs text-amber-400">
+                        <div className="w-6 h-6 rounded bg-amber-500/10 border border-amber-500/30 flex items-center justify-center font-mono font-bold text-sm text-amber-400">
                           #{entry.rank}
                         </div>
                         <div>
-                          <div className="text-xs font-bold text-white group-hover:text-amber-400 transition-colors">
+                          <div className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors">
                             {prospect.firstName} {prospect.lastName}
                           </div>
-                          <div className="text-[10px] text-slate-400">
+                          <div className="text-sm text-slate-400">
                             {prospect.primaryPosition} · {prospect.currentTeam}
                           </div>
                         </div>
                       </div>
 
                       <div className="text-right">
-                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-300 border border-sky-500/20 font-semibold">
+                        <span className="text-sm font-mono px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-300 border border-sky-500/20 font-semibold">
                           Tier {entry.tier}
                         </span>
                       </div>
@@ -333,17 +333,17 @@ export const DashboardView: React.FC = () => {
           {/* Watchlist & Quick Actions */}
           <div className="bg-[#111827] border border-[#1F293D] rounded-lg p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+              <h2 className="text-base font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
                 <Star className="w-4 h-4 text-amber-400" />
                 <span>Priority Watchlist</span>
               </h2>
-              <span className="text-xs font-mono text-slate-400">
+              <span className="text-sm font-mono text-slate-400">
                 {watchlistProspects.length} players
               </span>
             </div>
 
             {watchlistProspects.length === 0 ? (
-              <p className="text-xs text-slate-400">
+              <p className="text-sm text-slate-400">
                 No prospects marked as Watchlist yet. Assign the "Watchlist" status to prospects you want to monitor closely.
               </p>
             ) : (
@@ -352,12 +352,12 @@ export const DashboardView: React.FC = () => {
                   <div
                     key={p.id}
                     onClick={() => handleOpenProspect(p.id)}
-                    className="p-2.5 rounded bg-[#151D2F] hover:bg-[#1A253C] border border-[#22314E] cursor-pointer flex items-center justify-between text-xs transition-colors"
+                    className="p-2.5 rounded bg-[#151D2F] hover:bg-[#1A253C] border border-[#22314E] cursor-pointer flex items-center justify-between text-sm transition-colors"
                   >
                     <span className="font-medium text-slate-200">
                       {p.firstName} {p.lastName}
                     </span>
-                    <span className="text-[11px] font-mono text-amber-400">
+                    <span className="text-sm font-mono text-amber-400">
                       {p.primaryPosition}
                     </span>
                   </div>
@@ -368,7 +368,7 @@ export const DashboardView: React.FC = () => {
             <div className="pt-3 border-t border-[#1E293B] flex flex-col gap-2">
               <button
                 onClick={() => setActiveView('comparison')}
-                className="w-full py-2 px-3 bg-[#151F33] hover:bg-[#1D2A45] border border-[#243557] rounded-md text-xs font-medium text-slate-200 text-center transition-colors flex items-center justify-center gap-1.5"
+                className="w-full py-2 px-3 bg-[#151F33] hover:bg-[#1D2A45] border border-[#243557] rounded-md text-sm font-medium text-slate-200 text-center transition-colors flex items-center justify-center gap-1.5"
               >
                 <span>Launch Prospect Comparison Matrix</span>
               </button>

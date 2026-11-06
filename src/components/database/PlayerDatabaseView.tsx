@@ -188,17 +188,17 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
   };
 
   return (
-    <div className="p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="min-h-full w-full px-8 py-6 space-y-6">
       {/* Top Header & Fast Filter Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
             <span>Player Database</span>
-            <span className="text-xs font-mono font-medium text-slate-400">
+            <span className="text-sm font-mono font-medium text-slate-400">
               ({filteredProspects.length} of {prospects.length} prospects)
             </span>
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-sm text-slate-400 mt-0.5">
             NCAA stats can be cached from Settings. CSV covers Overtime Elite, Europe, and high school.
           </p>
         </div>
@@ -208,7 +208,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
           <div className="relative">
             <button
               onClick={() => setColumnMenuOpen(!columnMenuOpen)}
-              className="px-2.5 py-1.5 rounded bg-[#131B2C] border border-[#22314E] text-xs font-medium text-slate-300 hover:text-white transition-colors flex items-center gap-1.5"
+              className="px-2.5 py-1.5 rounded bg-[#131B2C] border border-[#22314E] text-sm font-medium text-slate-300 hover:text-white transition-colors flex items-center gap-1.5"
             >
               <SlidersHorizontal className="w-3.5 h-3.5 text-amber-400" />
               <span>Columns</span>
@@ -216,7 +216,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
             </button>
 
             {columnMenuOpen && (
-              <div className="absolute right-0 mt-1.5 w-48 bg-[#12192A] border border-[#243350] rounded-md shadow-2xl p-2 z-50 space-y-1 text-xs">
+              <div className="absolute right-0 mt-1.5 w-48 bg-[#12192A] border border-[#243350] rounded-md shadow-2xl p-2 z-50 space-y-1 text-sm">
                 <label className="flex items-center gap-2 px-2 py-1 hover:bg-[#192338] rounded cursor-pointer text-slate-200">
                   <input
                     type="checkbox"
@@ -272,17 +272,17 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name, team, tags..."
-              className="w-full bg-[#141C2E] border border-[#23314D] rounded-md pl-9 pr-3 py-1.5 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
+              className="w-full bg-[#141C2E] border border-[#23314D] rounded-md pl-9 pr-3 py-1.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
             />
           </div>
 
           {/* League Dropdown */}
           <div className="flex items-center gap-1.5 bg-[#141C2E] border border-[#23314D] rounded-md px-2.5 py-1">
-            <span className="text-[11px] text-slate-500 shrink-0">League:</span>
+            <span className="text-sm text-slate-500 shrink-0">League:</span>
             <select
               value={selectedLeague}
               onChange={(e) => setSelectedLeague(e.target.value)}
-              className="bg-transparent text-xs text-slate-200 focus:outline-none w-full cursor-pointer"
+              className="bg-transparent text-sm text-slate-200 focus:outline-none w-full cursor-pointer"
             >
               {leagues.map((lg) => (
                 <option key={lg} value={lg} className="bg-[#141C2E] text-slate-200">
@@ -293,11 +293,11 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
           </div>
 
           <div className="flex items-center gap-1.5 bg-[#141C2E] border border-[#23314D] rounded-md px-2.5 py-1">
-            <span className="text-[11px] text-slate-500 shrink-0">Grade:</span>
+            <span className="text-sm text-slate-500 shrink-0">Grade:</span>
             <select
               value={gradeRange}
               onChange={(e) => setGradeRange(e.target.value as typeof gradeRange)}
-              className="bg-transparent text-xs text-slate-200 focus:outline-none w-full cursor-pointer"
+              className="bg-transparent text-sm text-slate-200 focus:outline-none w-full cursor-pointer"
             >
               <option value="ALL" className="bg-[#141C2E]">All grades</option>
               <option value="ELITE" className="bg-[#141C2E]">8.0 – 10</option>
@@ -309,11 +309,11 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
 
           {/* Status Dropdown */}
           <div className="flex items-center gap-1.5 bg-[#141C2E] border border-[#23314D] rounded-md px-2.5 py-1">
-            <span className="text-[11px] text-slate-500 shrink-0">Status:</span>
+            <span className="text-sm text-slate-500 shrink-0">Status:</span>
             <select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
-              className="bg-transparent text-xs text-slate-200 focus:outline-none w-full cursor-pointer"
+              className="bg-transparent text-sm text-slate-200 focus:outline-none w-full cursor-pointer"
             >
               {statuses.map((st) => (
                 <option key={st} value={st} className="bg-[#141C2E] text-slate-200">
@@ -328,7 +328,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
             {comparisonProspectIds.length > 0 && (
               <button
                 onClick={() => setActiveView('comparison')}
-                className="w-full py-1.5 px-3 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 rounded-md text-xs font-medium transition-colors flex items-center justify-center gap-2"
+                className="w-full py-1.5 px-3 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2"
               >
                 <span>Compare Selected ({comparisonProspectIds.length})</span>
               </button>
@@ -337,13 +337,13 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
         </div>
 
         {/* Position Filter Pills */}
-        <div className="flex items-center gap-1.5 pt-1 border-t border-[#182337] text-xs">
-          <span className="text-[11px] text-slate-500 mr-2">Position:</span>
+        <div className="flex items-center gap-1.5 pt-1 border-t border-[#182337] text-sm">
+          <span className="text-sm text-slate-500 mr-2">Position:</span>
           {positions.map((pos) => (
             <button
               key={pos}
               onClick={() => setSelectedPos(pos)}
-              className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+              className={`px-2.5 py-1 rounded text-sm font-medium transition-colors ${
                 selectedPos === pos
                   ? 'bg-amber-500 text-slate-950 font-bold shadow-sm'
                   : 'bg-[#151D2F] text-slate-400 hover:text-slate-200 hover:bg-[#1A243A]'
@@ -358,9 +358,9 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
       {/* Main Prospects Table */}
       <div className="bg-[#111827] border border-[#1E293B] rounded-lg overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+          <table className="w-full text-left text-sm border-collapse">
             <thead>
-              <tr className="bg-[#0E1422] border-b border-[#1E293B] text-[11px] font-bold uppercase tracking-wider text-slate-400 select-none">
+              <tr className="bg-[#0E1422] border-b border-[#1E293B] text-base font-bold uppercase tracking-wider text-slate-400 select-none">
                 <th className="py-3 px-4 w-12 text-center">Compare</th>
                 <th
                   onClick={() => handleSort('name')}
@@ -433,12 +433,12 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
                 <tr>
                   <td colSpan={7 + Number(showWingspan) + Number(showAge) + Number(showStats) + Number(showTags)} className="py-12 text-center text-slate-400">
                     <p className="text-sm font-medium">No prospects found</p>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-sm text-slate-400 mt-1">
                       Adjust your filters or add a new prospect to your database.
                     </p>
                     <button
                       onClick={onOpenNewProspectModal}
-                      className="mt-4 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs rounded-md inline-flex items-center gap-1.5 transition-colors"
+                      className="mt-4 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-sm rounded-md inline-flex items-center gap-1.5 transition-colors"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Add First Prospect</span>
@@ -484,7 +484,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
                             <div className="font-bold text-white group-hover:text-amber-400 transition-colors">
                               {p.firstName} {p.lastName}
                             </div>
-                            <div className="text-[10px] text-slate-400 font-mono">
+                            <div className="text-sm text-slate-400 font-mono">
                               Class of {p.draftYear} · {p.nationality}
                             </div>
                           </div>
@@ -493,7 +493,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
 
                       {/* Position */}
                       <td className="py-2.5 px-3 text-center">
-                        <span className="font-mono font-bold text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded border border-amber-400/20 text-[11px]">
+                        <span className="font-mono font-bold text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded border border-amber-400/20 text-sm">
                           {p.primaryPosition}
                         </span>
                       </td>
@@ -532,9 +532,9 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
                         <td className="py-2.5 px-4 min-w-[19rem] font-mono tabular-nums text-slate-200">
                           {stat ? (
                             <span className="grid grid-cols-3 gap-x-4 whitespace-nowrap text-center">
-                              <span><strong className="text-white">{stat.ppg == null ? '—' : stat.ppg.toFixed(1)}</strong> <span className="text-[10px] text-slate-500">PPG</span></span>
-                              <span><strong className="text-white">{stat.rpg == null ? '—' : stat.rpg.toFixed(1)}</strong> <span className="text-[10px] text-slate-500">RPG</span></span>
-                              <span><strong className="text-white">{stat.apg == null ? '—' : stat.apg.toFixed(1)}</strong> <span className="text-[10px] text-slate-500">APG</span></span>
+                              <span><strong className="text-white">{stat.ppg == null ? '—' : stat.ppg.toFixed(1)}</strong> <span className="text-sm text-slate-500">PPG</span></span>
+                              <span><strong className="text-white">{stat.rpg == null ? '—' : stat.rpg.toFixed(1)}</strong> <span className="text-sm text-slate-500">RPG</span></span>
+                              <span><strong className="text-white">{stat.apg == null ? '—' : stat.apg.toFixed(1)}</strong> <span className="text-sm text-slate-500">APG</span></span>
                             </span>
                           ) : (
                             <span className="block text-right text-slate-400">—</span>
@@ -544,7 +544,7 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
 
                       {/* Status */}
                       <td className="py-2.5 px-3 text-center whitespace-nowrap">
-                        <span className="inline-flex items-center justify-center whitespace-nowrap min-w-[7.5rem] text-[10px] font-medium px-3 py-1 rounded bg-[#182337] text-slate-300 border border-[#253450]">
+                        <span className="inline-flex items-center justify-center whitespace-nowrap min-w-[7.5rem] text-sm font-medium px-3 py-1 rounded bg-[#182337] text-slate-300 border border-[#253450]">
                           {p.status}
                         </span>
                       </td>
@@ -556,13 +556,13 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
                             {p.tags.slice(0, 2).map((t) => (
                               <span
                                 key={t}
-                                className="text-[10px] px-1.5 py-0.5 rounded bg-[#162135] text-slate-300 border border-[#22314E]"
+                                className="text-sm px-1.5 py-0.5 rounded bg-[#162135] text-slate-300 border border-[#22314E]"
                               >
                                 {t}
                               </span>
                             ))}
                             {p.tags.length > 2 && (
-                              <span className="text-[10px] text-slate-400 self-center">
+                              <span className="text-sm text-slate-400 self-center">
                                 +{p.tags.length - 2}
                               </span>
                             )}

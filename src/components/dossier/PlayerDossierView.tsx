@@ -115,12 +115,12 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
     return (
       <div className="p-12 text-center text-slate-400">
         <p className="text-base font-medium">No prospect selected</p>
-        <p className="text-xs text-slate-400 mt-1">
+        <p className="text-sm text-slate-400 mt-1">
           Select a prospect from the Database or create a new prospect to begin.
         </p>
         <button
           onClick={() => setActiveView('database')}
-          className="mt-4 px-4 py-2 bg-amber-500 text-slate-950 font-semibold rounded-md text-xs hover:bg-amber-400 transition-colors"
+          className="mt-4 px-4 py-2 bg-amber-500 text-slate-950 font-semibold rounded-md text-sm hover:bg-amber-400 transition-colors"
         >
           Go to Player Database
         </button>
@@ -209,7 +209,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
   const radarData = latestReport ? categoryRadarPoints(latestReport.categoryGrades) : [];
 
   return (
-    <div className="p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="min-h-full w-full px-8 py-6 space-y-6">
       {/* Top Prospect Dossier Banner */}
       <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-6 shadow-xl">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -224,19 +224,19 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
 
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2.5">
-                <h1 className="text-2xl font-extrabold tracking-tight text-white">
+                <h1 className="text-3xl font-extrabold tracking-tight text-white">
                   {p.firstName} {p.lastName}
                 </h1>
-                <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-amber-400/10 text-amber-400 border border-amber-400/20">
+                <span className="font-mono text-sm font-bold px-2 py-0.5 rounded bg-amber-400/10 text-amber-400 border border-amber-400/20">
                   {p.primaryPosition}
                   {p.secondaryPosition ? ` / ${p.secondaryPosition}` : ''}
                 </span>
-                <span className="text-xs font-mono px-2 py-0.5 rounded bg-[#1A2438] text-slate-300 border border-[#23314B]">
+                <span className="text-sm font-mono px-2 py-0.5 rounded bg-[#1A2438] text-slate-300 border border-[#23314B]">
                   Class of {p.draftYear}
                 </span>
               </div>
 
-              <div className="text-xs text-slate-300 flex flex-wrap items-center gap-3">
+              <div className="text-sm text-slate-300 flex flex-wrap items-center gap-3">
                 <span className="font-semibold text-slate-200">{p.currentTeam}</span>
                 <span aria-hidden="true" className="text-slate-600">·</span>
                 <span className="text-slate-400">{p.currentLeague}</span>
@@ -253,24 +253,24 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
               </div>
 
               {/* Physical measurements strip */}
-              <div className="flex flex-wrap items-center gap-4 pt-1.5 text-xs font-mono text-slate-300">
+              <div className="flex flex-wrap items-center gap-4 pt-1.5 text-sm font-mono text-slate-300">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-slate-400 uppercase text-[10px]">Height:</span>
+                  <span className="text-slate-400 uppercase text-sm">Height:</span>
                   <span className="font-bold text-white">{p.measurements.heightFormatted}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-slate-400 uppercase text-[10px]">Weight:</span>
+                  <span className="text-slate-400 uppercase text-sm">Weight:</span>
                   <span className="font-bold text-white">{p.measurements.weightLbs} lbs</span>
                 </div>
                 {p.measurements.wingspanFormatted && (
                   <div className="flex items-center gap-1.5">
-                    <span className="text-slate-400 uppercase text-[10px]">Wingspan:</span>
+                    <span className="text-slate-400 uppercase text-sm">Wingspan:</span>
                     <span className="font-bold text-amber-400">{p.measurements.wingspanFormatted}</span>
                   </div>
                 )}
                 {p.measurements.standingReachFormatted && (
                   <div className="flex items-center gap-1.5">
-                    <span className="text-slate-400 uppercase text-[10px]">Reach:</span>
+                    <span className="text-slate-400 uppercase text-sm">Reach:</span>
                     <span className="font-bold text-white">{p.measurements.standingReachFormatted}</span>
                   </div>
                 )}
@@ -282,13 +282,13 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
           <div className="flex flex-col sm:flex-row items-start lg:items-end gap-3 shrink-0">
             {/* Status Dropdown */}
             <div className="w-full sm:w-auto">
-              <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
+              <label className="block text-sm uppercase font-bold text-slate-400 mb-1">
                 Scout Status
               </label>
               <select
                 value={p.status}
                 onChange={(e) => handleStatusChange(e.target.value as ProspectStatus)}
-                className="bg-[#141C2E] border border-[#243350] rounded-md px-3 py-1.5 text-xs font-medium text-slate-200 focus:outline-none focus:border-amber-500 cursor-pointer"
+                className="bg-[#141C2E] border border-[#243350] rounded-md px-3 py-1.5 text-sm font-medium text-slate-200 focus:outline-none focus:border-amber-500 cursor-pointer"
               >
                 <option value="Watchlist">Watchlist</option>
                 <option value="To Observe">To Observe</option>
@@ -302,7 +302,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
             {/* Compare toggle */}
             <button
               onClick={() => toggleComparisonProspect(p.id)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors border ${
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors border ${
                 isCompared
                   ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
                   : 'bg-[#151D2F] text-slate-300 border-[#23314D] hover:text-white'
@@ -313,7 +313,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
 
             <button
               onClick={() => setIsEditingProfile(true)}
-              className="px-3 py-1.5 bg-[#151D2F] hover:bg-[#1C2740] text-slate-200 border border-[#23314D] text-xs font-medium rounded-md"
+              className="px-3 py-1.5 bg-[#151D2F] hover:bg-[#1C2740] text-slate-200 border border-[#23314D] text-sm font-medium rounded-md"
             >
               Edit Profile
             </button>
@@ -322,7 +322,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                 setDeleteError('');
                 setIsConfirmingDelete(true);
               }}
-              className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-medium rounded-md"
+              className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-sm font-medium rounded-md"
             >
               Delete Prospect
             </button>
@@ -332,11 +332,11 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
         {/* Tags bar */}
         {p.tags.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5 pt-4 mt-4 border-t border-[#1C263B]">
-            <span className="text-[11px] text-slate-400 mr-1">Tags:</span>
+            <span className="text-sm text-slate-400 mr-1">Tags:</span>
             {p.tags.map((t) => (
               <span
                 key={t}
-                className="text-[11px] px-2 py-0.5 rounded bg-[#172237] text-slate-200 border border-[#233452]"
+                className="text-sm px-2 py-0.5 rounded bg-[#172237] text-slate-200 border border-[#233452]"
               >
                 {t}
               </span>
@@ -346,7 +346,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
       </div>
 
       {/* Tabs Bar */}
-      <div className="flex items-center gap-1 border-b border-[#1E293B] pb-px text-xs font-medium">
+      <div className="flex items-center gap-1 border-b border-[#1E293B] pb-px text-sm font-medium">
         {[
           { id: 'overview', label: 'Overview' },
           { id: 'statistics', label: 'Statistics' },
@@ -392,7 +392,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                   key={s.label}
                   className="bg-[#111827] border border-[#1E293B] rounded-lg p-3 text-center"
                 >
-                  <div className="text-[10px] uppercase font-bold text-slate-400">
+                  <div className="text-sm uppercase font-bold text-slate-400">
                     {s.label}
                   </div>
                   <div
@@ -406,7 +406,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
               ))}
             </div>
           ) : (
-            <div className="p-4 rounded-lg bg-[#111827] border border-[#1E293B] text-xs text-slate-400 text-center">
+            <div className="p-4 rounded-lg bg-[#111827] border border-[#1E293B] text-sm text-slate-400 text-center">
               No season statistics recorded yet. You can add stats via the Statistics tab or CSV import.
             </div>
           )}
@@ -419,32 +419,32 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                 {/* Executive Summary */}
                 <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-5 space-y-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                    <h3 className="text-base font-bold uppercase tracking-wider text-slate-300">
                       Scout Executive Evaluation
                     </h3>
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-mono text-slate-400">
+                      <span className="text-sm font-mono text-slate-400">
                         {latestReport.reportDate}
                       </span>
-                      <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span className="font-mono text-sm font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                         Grade: {latestReport.overallGrade.toFixed(1)} / 10
                       </span>
                     </div>
                   </div>
-                  <p className="text-xs text-slate-300 leading-relaxed">
+                  <p className="text-sm text-slate-300 leading-relaxed">
                     {latestReport.executiveSummary}
                   </p>
                 </div>
 
                 {/* NBA Projection Matrix */}
                 <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-5 space-y-4">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                  <h3 className="text-base font-bold uppercase tracking-wider text-slate-300">
                     NBA Projection & Role Trajectory
                   </h3>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div className="p-3 rounded bg-[#141C2D] border border-[#22304C]">
-                      <div className="text-[10px] text-slate-400 font-bold uppercase">
+                      <div className="text-sm text-slate-400 font-bold uppercase">
                         NBA Archetype
                       </div>
                       <div className="font-semibold text-amber-300 mt-0.5">
@@ -453,7 +453,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                     </div>
 
                     <div className="p-3 rounded bg-[#141C2D] border border-[#22304C]">
-                      <div className="text-[10px] text-slate-400 font-bold uppercase">
+                      <div className="text-sm text-slate-400 font-bold uppercase">
                         Projected Role
                       </div>
                       <div className="font-semibold text-slate-200 mt-0.5">
@@ -462,14 +462,14 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                     </div>
 
                     <div className="p-3 rounded bg-[#141C2D] border border-[#22304C]">
-                      <div className="text-[10px] text-slate-400 font-bold uppercase">
+                      <div className="text-sm text-slate-400 font-bold uppercase">
                         Floor
                       </div>
                       <div className="text-slate-300 mt-0.5">{latestReport.floor}</div>
                     </div>
 
                     <div className="p-3 rounded bg-[#141C2D] border border-[#22304C]">
-                      <div className="text-[10px] text-slate-400 font-bold uppercase">
+                      <div className="text-sm text-slate-400 font-bold uppercase">
                         Ceiling
                       </div>
                       <div className="text-emerald-400 font-medium mt-0.5">
@@ -480,14 +480,14 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
 
                   {/* Comparisons */}
                   <div className="pt-2">
-                    <div className="text-[10px] text-slate-400 font-bold uppercase mb-1">
+                    <div className="text-sm text-slate-400 font-bold uppercase mb-1">
                       Player Comparisons
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {latestReport.playerComparisons.map((c) => (
                         <span
                           key={c}
-                          className="px-2.5 py-1 rounded bg-[#182337] text-slate-200 text-xs font-medium border border-[#253654]"
+                          className="px-2.5 py-1 rounded bg-[#182337] text-slate-200 text-sm font-medium border border-[#253654]"
                         >
                           {c}
                         </span>
@@ -500,11 +500,11 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Strengths */}
                   <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-5 space-y-3">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                    <h4 className="text-base font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>Key Strengths</span>
                     </h4>
-                    <ul className="space-y-2 text-xs text-slate-300">
+                    <ul className="space-y-2 text-sm text-slate-300">
                       {latestReport.strengths.map((str, idx) => (
                         <li key={idx} className="flex items-start gap-2">
                           <span className="text-emerald-500 font-bold">✓</span>
@@ -516,11 +516,11 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
 
                   {/* Weaknesses */}
                   <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-5 space-y-3">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                    <h4 className="text-base font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
                       <AlertTriangle className="w-3.5 h-3.5" />
                       <span>Areas for Growth</span>
                     </h4>
-                    <ul className="space-y-2 text-xs text-slate-300">
+                    <ul className="space-y-2 text-sm text-slate-300">
                       {latestReport.weaknesses.map((weak, idx) => (
                         <li key={idx} className="flex items-start gap-2">
                           <span className="text-amber-500 font-bold">⚠</span>
@@ -535,21 +535,21 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
               {/* Right Col: Radar Chart */}
               <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-5 flex flex-col items-center justify-center space-y-4">
                 <div className="w-full flex items-center justify-between gap-2">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                  <h3 className="text-base font-bold uppercase tracking-wider text-slate-300">
                     Skill Evaluation Radar
                   </h3>
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
                       onClick={() => onEditReport(latestReport)}
-                      className="px-2 py-1 rounded bg-[#1A263D] hover:bg-[#223250] text-[10px] font-semibold text-slate-200 border border-[#283C5E]"
+                      className="px-2 py-1 rounded bg-[#1A263D] hover:bg-[#223250] text-sm font-semibold text-slate-200 border border-[#283C5E]"
                     >
                       Edit
                     </button>
                     <button
                       type="button"
                       onClick={() => confirmDeleteReport(latestReport.id)}
-                      className="px-2 py-1 rounded bg-rose-500/10 hover:bg-rose-500/20 text-[10px] font-semibold text-rose-300 border border-rose-500/30"
+                      className="px-2 py-1 rounded bg-rose-500/10 hover:bg-rose-500/20 text-sm font-semibold text-rose-300 border border-rose-500/30"
                     >
                       Delete
                     </button>
@@ -562,7 +562,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                   {radarData.map((d) => (
                     <div
                       key={d.axis}
-                      className="flex items-center justify-between text-xs"
+                      className="flex items-center justify-between text-sm"
                     >
                       <span className="text-slate-400">{d.axis}</span>
                       <div className="flex items-center gap-2">
@@ -573,7 +573,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                           />
                         </div>
                         <span className={`font-mono font-bold tabular-nums text-right ${
-                          d.value > 0 ? 'text-white w-8' : 'text-slate-500 text-[10px] w-12'
+                          d.value > 0 ? 'text-white w-8' : 'text-slate-500 text-sm w-12'
                         }`}>
                           {d.value > 0 ? d.value.toFixed(1) : 'Unrated'}
                         </span>
@@ -587,12 +587,12 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
             <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-8 text-center space-y-3">
               <FileSpreadsheet className="w-8 h-8 text-amber-500/50 mx-auto" />
               <h3 className="text-sm font-bold text-white">Unrated / No Report Yet</h3>
-              <p className="text-xs text-slate-400 max-w-md mx-auto">
+              <p className="text-sm text-slate-400 max-w-md mx-auto">
                 No personal scouting evaluations have been authored for this prospect. File a report to grade their physical tools, offensive/defensive traits, and establish their skill radar.
               </p>
               <button
                 onClick={onOpenNewReportModal}
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-md text-xs transition-colors"
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-md text-sm transition-colors"
               >
                 Create First Scouting Report
               </button>
@@ -606,18 +606,18 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
         <div className="space-y-6">
           <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+              <h3 className="text-base font-bold uppercase tracking-wider text-slate-200">
                 Season Traditional Box Scores
               </h3>
-              <span className="text-[11px] font-mono text-slate-400">
+              <span className="text-sm font-mono text-slate-400">
                 Source: {currentStats?.source || 'Manual / Verified Entry'}
               </span>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse font-mono tabular-nums">
+              <table className="w-full text-left text-sm border-collapse font-mono tabular-nums">
                 <thead>
-                  <tr className="bg-[#0E1422] border-b border-[#1E293B] text-[11px] uppercase text-slate-400">
+                  <tr className="bg-[#0E1422] border-b border-[#1E293B] text-sm uppercase text-slate-400">
                     <th className="py-2.5 px-3">Season</th>
                     <th className="py-2.5 px-3">Team</th>
                     <th className="py-2.5 px-3">League</th>
@@ -667,7 +667,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
           {/* Advanced Analytics */}
           {currentStats && (
             <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-5">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200 mb-4">
+              <h3 className="text-base font-bold uppercase tracking-wider text-slate-200 mb-4">
                 Advanced Analytical Profile
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
@@ -680,7 +680,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                   { label: 'BPM (Box Plus/Minus)', val: currentStats.bpm == null ? '—' : `${currentStats.bpm > 0 ? '+' : ''}${fmtStat(currentStats.bpm)}` },
                 ].map((item) => (
                   <div key={item.label} className="p-3 bg-[#131B2D] border border-[#1F2C45] rounded-md">
-                    <div className="text-[10px] uppercase font-bold text-slate-400">{item.label}</div>
+                    <div className="text-sm uppercase font-bold text-slate-400">{item.label}</div>
                     <div className="text-base font-bold font-mono text-white mt-1 tabular-nums">
                       {item.val}
                     </div>
@@ -696,12 +696,12 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
       {activeTab === 'scouting' && (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+            <h3 className="text-base font-bold uppercase tracking-wider text-slate-200">
               Scouting Reports ({playerReports.length})
             </h3>
             <button
               onClick={onOpenNewReportModal}
-              className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold rounded-md text-xs transition-colors flex items-center gap-1.5"
+              className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold rounded-md text-sm transition-colors flex items-center gap-1.5"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>New Scouting Report</span>
@@ -712,12 +712,12 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
             <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-8 text-center space-y-3">
               <FileSpreadsheet className="w-8 h-8 text-amber-500/50 mx-auto" />
               <h4 className="text-sm font-bold text-white">Unrated / No Report Yet</h4>
-              <p className="text-xs text-slate-400 max-w-md mx-auto">
+              <p className="text-sm text-slate-400 max-w-md mx-auto">
                 No subjective scouting evaluations have been authored for this prospect. Click the button below to rate their physical tools, skills, and NBA projection.
               </p>
               <button
                 onClick={onOpenNewReportModal}
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-md text-xs transition-colors"
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-md text-sm transition-colors"
               >
                 Create First Scouting Report
               </button>
@@ -730,27 +730,27 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                     <h4 className="text-base font-bold text-white flex flex-wrap items-center gap-2.5">
                       <span>{rep.gameOrEvent || (rep.reportType === 'Overall Prospect Evaluation' ? 'Season Overview' : 'Comprehensive Evaluation')}</span>
                       {rep.reportType && (
-                        <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-sky-500/10 text-sky-300 border border-sky-500/20 font-medium">
+                        <span className="font-mono text-sm px-2 py-0.5 rounded bg-sky-500/10 text-sky-300 border border-sky-500/20 font-medium">
                           {rep.reportType}
                         </span>
                       )}
-                      <span className="font-mono text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span className="font-mono text-sm px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                         Overall: {rep.overallGrade.toFixed(1)} / 10
                       </span>
                     </h4>
-                    <div className="text-xs text-slate-400 mt-1">
+                    <div className="text-sm text-slate-400 mt-1">
                       Scouted on {rep.reportDate} · {confidenceLabel(rep.confidence)}
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-amber-400">
+                    <span className="text-sm font-medium text-amber-400">
                       {rep.nbaArchetype}
                     </span>
                     <button
                       type="button"
                       onClick={() => onEditReport(rep)}
-                      className="px-2 py-1 rounded bg-[#1A263D] hover:bg-[#223250] text-[10px] font-semibold text-slate-200 border border-[#283C5E] inline-flex items-center gap-1"
+                      className="px-2 py-1 rounded bg-[#1A263D] hover:bg-[#223250] text-sm font-semibold text-slate-200 border border-[#283C5E] inline-flex items-center gap-1"
                     >
                       <Edit className="w-3 h-3" />
                       Edit
@@ -758,7 +758,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                     <button
                       type="button"
                       onClick={() => confirmDeleteReport(rep.id)}
-                      className="px-2 py-1 rounded bg-rose-500/10 hover:bg-rose-500/20 text-[10px] font-semibold text-rose-300 border border-rose-500/30 inline-flex items-center gap-1"
+                      className="px-2 py-1 rounded bg-rose-500/10 hover:bg-rose-500/20 text-sm font-semibold text-rose-300 border border-rose-500/30 inline-flex items-center gap-1"
                     >
                       <Trash2 className="w-3 h-3" />
                       Delete
@@ -768,10 +768,10 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
 
                 {/* Sub-skill Grids */}
                 {rep.detailedGrades && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
                     {/* Physical & Athleticism */}
                     <div className="p-4 rounded bg-[#131C2E] border border-[#202E49] space-y-2">
-                      <h5 className="font-bold uppercase tracking-wider text-amber-400 text-[11px] mb-2">
+                      <h5 className="font-bold uppercase tracking-wider text-amber-400 text-sm mb-2">
                         Physical Tools & Athleticism
                       </h5>
                       <div className="space-y-1.5">
@@ -794,7 +794,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
 
                     {/* Offensive Skills */}
                     <div className="p-4 rounded bg-[#131C2E] border border-[#202E49] space-y-2">
-                      <h5 className="font-bold uppercase tracking-wider text-sky-400 text-[11px] mb-2">
+                      <h5 className="font-bold uppercase tracking-wider text-sky-400 text-sm mb-2">
                         Offensive Skillset
                       </h5>
                       <div className="space-y-1.5">
@@ -817,7 +817,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
 
                     {/* Defense & Basketball IQ */}
                     <div className="p-4 rounded bg-[#131C2E] border border-[#202E49] space-y-2">
-                      <h5 className="font-bold uppercase tracking-wider text-emerald-400 text-[11px] mb-2">
+                      <h5 className="font-bold uppercase tracking-wider text-emerald-400 text-sm mb-2">
                         Defense & Basketball IQ
                       </h5>
                       <div className="space-y-1.5">
@@ -841,7 +841,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                 )}
 
                 {/* Written Summary */}
-                <div className="text-xs text-slate-300 leading-relaxed bg-[#131B2B] p-4 rounded border border-[#1F2C45]">
+                <div className="text-sm text-slate-300 leading-relaxed bg-[#131B2B] p-4 rounded border border-[#1F2C45]">
                   {rep.executiveSummary}
                 </div>
               </div>
@@ -854,12 +854,12 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
       {activeTab === 'video' && (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+            <h3 className="text-base font-bold uppercase tracking-wider text-slate-200">
               Video Breakdowns & Timestamps ({playerVideos.length})
             </h3>
             <button
               onClick={() => setIsAddingVideo((open) => !open)}
-              className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold rounded-md text-xs"
+              className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold rounded-md text-sm"
             >
               {isAddingVideo ? 'Cancel' : 'Add Video'}
             </button>
@@ -867,7 +867,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
 
           {isAddingVideo && (
             <form
-              className="bg-[#111827] border border-amber-500/30 rounded-lg p-4 grid grid-cols-1 gap-3 text-xs"
+              className="bg-[#111827] border border-amber-500/30 rounded-lg p-4 grid grid-cols-1 gap-3 text-sm"
               onSubmit={(e) => {
                 e.preventDefault();
                 const form = new FormData(e.currentTarget);
@@ -919,7 +919,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                 <div key={vid.id} className="bg-[#111827] border border-[#1E293B] rounded-lg p-5 space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="text-xs font-bold text-white flex items-center gap-2">
+                      <h4 className="text-sm font-bold text-white flex items-center gap-2">
                         <Play className="w-3.5 h-3.5 text-amber-400" />
                         <span>{vid.title}</span>
                       </h4>
@@ -928,7 +928,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                       href={vid.videoUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-3 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-xs font-medium flex items-center gap-1.5 transition-colors"
+                      className="px-3 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-sm font-medium flex items-center gap-1.5 transition-colors"
                     >
                       <span>Watch Full Film</span>
                       <ExternalLink className="w-3 h-3" />
@@ -953,17 +953,17 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
         <div className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+              <h3 className="text-base font-bold uppercase tracking-wider text-slate-200">
                 Scouting Notebook & Observations
               </h3>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <p className="text-sm text-slate-400 mt-0.5">
                 Rich text scouting logs with quick templates, markdown tools, and automatic SQLite persistence.
               </p>
             </div>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setIsAddingNote(!isAddingNote)}
-                className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold rounded-md text-xs transition-colors flex items-center gap-1.5 shadow-sm"
+                className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold rounded-md text-sm transition-colors flex items-center gap-1.5 shadow-sm"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>{isAddingNote ? 'Cancel' : 'Write Freeform Note'}</span>
@@ -977,17 +977,17 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
               <div className="flex items-center justify-between border-b border-[#1E293B] pb-3">
                 <div className="flex items-center gap-2">
                   <FileText className="w-4 h-4 text-amber-400" />
-                  <h4 className="text-xs font-bold uppercase text-white tracking-wider">
+                  <h4 className="text-sm font-bold uppercase text-white tracking-wider">
                     Add Scouting Observation
                   </h4>
                 </div>
-                <span className="text-[10px] font-mono text-slate-400">
+                <span className="text-sm font-mono text-slate-400">
                   Autosaves draft in browser · Stores in SQLite on save
                 </span>
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
+                <label className="block text-sm uppercase font-bold text-slate-400 mb-1">
                   Note Title *
                 </label>
                 <input
@@ -995,20 +995,20 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                   value={newNoteTitle}
                   onChange={(e) => handleTitleChange(e.target.value)}
                   placeholder="e.g. Shooting Mechanics & Footwork / Defensive Switchability"
-                  className="w-full bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                  className="w-full bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500"
                   required
                 />
               </div>
 
               {/* Rich Markdown Formatting Toolbar */}
               <div className="space-y-1.5">
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-[#141C2E] border border-[#23314D] rounded-t px-2.5 py-1.5 text-xs text-slate-300">
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-[#141C2E] border border-[#23314D] rounded-t px-2.5 py-1.5 text-sm text-slate-300">
                   <div className="flex items-center gap-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase mr-1">Format:</span>
+                    <span className="text-sm font-bold text-slate-400 uppercase mr-1">Format:</span>
                     <button
                       type="button"
                       onClick={() => insertMarkdown('**', '**')}
-                      className="px-2 py-0.5 rounded hover:bg-[#1E2A42] hover:text-white font-bold text-[11px] border border-transparent hover:border-[#2C3E60]"
+                      className="px-2 py-0.5 rounded hover:bg-[#1E2A42] hover:text-white font-bold text-sm border border-transparent hover:border-[#2C3E60]"
                       title="Bold"
                     >
                       B
@@ -1016,7 +1016,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                     <button
                       type="button"
                       onClick={() => insertMarkdown('*', '*')}
-                      className="px-2 py-0.5 rounded hover:bg-[#1E2A42] hover:text-white italic text-[11px] border border-transparent hover:border-[#2C3E60]"
+                      className="px-2 py-0.5 rounded hover:bg-[#1E2A42] hover:text-white italic text-sm border border-transparent hover:border-[#2C3E60]"
                       title="Italic"
                     >
                       I
@@ -1024,7 +1024,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                     <button
                       type="button"
                       onClick={() => insertMarkdown('\n### ')}
-                      className="px-2 py-0.5 rounded hover:bg-[#1E2A42] hover:text-white font-mono text-[11px] border border-transparent hover:border-[#2C3E60]"
+                      className="px-2 py-0.5 rounded hover:bg-[#1E2A42] hover:text-white font-mono text-sm border border-transparent hover:border-[#2C3E60]"
                       title="Section Heading"
                     >
                       H3
@@ -1032,7 +1032,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                     <button
                       type="button"
                       onClick={() => insertMarkdown('\n- ')}
-                      className="px-2 py-0.5 rounded hover:bg-[#1E2A42] hover:text-white font-mono text-[11px] border border-transparent hover:border-[#2C3E60]"
+                      className="px-2 py-0.5 rounded hover:bg-[#1E2A42] hover:text-white font-mono text-sm border border-transparent hover:border-[#2C3E60]"
                       title="Bullet point"
                     >
                       • List
@@ -1040,7 +1040,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                     <button
                       type="button"
                       onClick={() => insertMarkdown('\n1. ')}
-                      className="px-2 py-0.5 rounded hover:bg-[#1E2A42] hover:text-white font-mono text-[11px] border border-transparent hover:border-[#2C3E60]"
+                      className="px-2 py-0.5 rounded hover:bg-[#1E2A42] hover:text-white font-mono text-sm border border-transparent hover:border-[#2C3E60]"
                       title="Numbered list"
                     >
                       1. List
@@ -1048,7 +1048,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                     <button
                       type="button"
                       onClick={() => insertMarkdown('\n> ')}
-                      className="px-2 py-0.5 rounded hover:bg-[#1E2A42] hover:text-white font-mono text-[11px] border border-transparent hover:border-[#2C3E60]"
+                      className="px-2 py-0.5 rounded hover:bg-[#1E2A42] hover:text-white font-mono text-sm border border-transparent hover:border-[#2C3E60]"
                       title="Quote observation"
                     >
                       “ Quote
@@ -1057,7 +1057,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
 
                   {/* Pre-built Scouting Templates */}
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-bold text-amber-400 uppercase">Templates:</span>
+                    <span className="text-sm font-bold text-amber-400 uppercase">Templates:</span>
                     <button
                       type="button"
                       onClick={() =>
@@ -1065,7 +1065,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                           `### Physical Assessment\n- Frame & Length:\n- Functional Athleticism:\n- Motor & Stamina:`
                         )
                       }
-                      className="px-2 py-0.5 rounded bg-[#182338] hover:bg-[#20304C] text-[10px] text-slate-300 border border-[#23334F]"
+                      className="px-2 py-0.5 rounded bg-[#182338] hover:bg-[#20304C] text-sm text-slate-300 border border-[#23334F]"
                     >
                       Physical
                     </button>
@@ -1076,7 +1076,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                           `### Offensive Skillset\n- Primary Creation:\n- Catch-and-Shoot:\n- Decision Making / PnR:`
                         )
                       }
-                      className="px-2 py-0.5 rounded bg-[#182338] hover:bg-[#20304C] text-[10px] text-slate-300 border border-[#23334F]"
+                      className="px-2 py-0.5 rounded bg-[#182338] hover:bg-[#20304C] text-sm text-slate-300 border border-[#23334F]"
                     >
                       Offense
                     </button>
@@ -1087,7 +1087,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                           `### Defensive Profile\n- Point of Attack:\n- Help & Rotations:\n- Rim Protection:`
                         )
                       }
-                      className="px-2 py-0.5 rounded bg-[#182338] hover:bg-[#20304C] text-[10px] text-slate-300 border border-[#23334F]"
+                      className="px-2 py-0.5 rounded bg-[#182338] hover:bg-[#20304C] text-sm text-slate-300 border border-[#23334F]"
                     >
                       Defense
                     </button>
@@ -1098,7 +1098,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                           `### NBA Outlook & Swing Skills\n- Day-1 Projected Role:\n- Long-Term Ceiling:\n- Critical Swing Skill:`
                         )
                       }
-                      className="px-2 py-0.5 rounded bg-[#182338] hover:bg-[#20304C] text-[10px] text-slate-300 border border-[#23334F]"
+                      className="px-2 py-0.5 rounded bg-[#182338] hover:bg-[#20304C] text-sm text-slate-300 border border-[#23334F]"
                     >
                       Projection
                     </button>
@@ -1110,13 +1110,13 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                   onChange={(e) => handleContentChange(e.target.value)}
                   placeholder="Record your detailed scouting impressions, tendencies, touch, motor, discipline, or click a template above..."
                   rows={6}
-                  className="w-full bg-[#141C2E] border border-t-0 border-[#23314D] rounded-b p-3 text-xs text-white focus:outline-none focus:border-amber-500 leading-relaxed font-sans"
+                  className="w-full bg-[#141C2E] border border-t-0 border-[#23314D] rounded-b p-3 text-sm text-white focus:outline-none focus:border-amber-500 leading-relaxed font-sans"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
+                <label className="block text-sm uppercase font-bold text-slate-400 mb-1">
                   Tags (comma separated)
                 </label>
                 <input
@@ -1124,7 +1124,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                   value={newNoteTags}
                   onChange={(e) => setNewNoteTags(e.target.value)}
                   placeholder="Film Study, Shooting, Switchability, Draft 2027"
-                  className="w-full bg-[#141C2E] border border-[#23314D] rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                  className="w-full bg-[#141C2E] border border-[#23314D] rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-amber-500"
                 />
               </div>
 
@@ -1132,13 +1132,13 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsAddingNote(false)}
-                  className="px-3.5 py-1.5 bg-[#182337] hover:bg-[#202F49] text-slate-300 rounded text-xs transition-colors"
+                  className="px-3.5 py-1.5 bg-[#182337] hover:bg-[#202F49] text-slate-300 rounded text-sm transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-xs transition-colors shadow-sm"
+                  className="px-4 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-sm transition-colors shadow-sm"
                 >
                   Save Note to SQLite
                 </button>
@@ -1159,40 +1159,40 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                     /* Edit Note Mode */
                     <div className="space-y-3">
                       <div className="flex items-center justify-between border-b border-[#1E293B] pb-2">
-                        <span className="text-xs font-bold text-amber-400 uppercase">Edit Scouting Note</span>
-                        <span className="text-[10px] text-slate-400">Modifying note #{note.id}</span>
+                        <span className="text-sm font-bold text-amber-400 uppercase">Edit Scouting Note</span>
+                        <span className="text-sm text-slate-400">Modifying note #{note.id}</span>
                       </div>
                       <input
                         type="text"
                         value={editTitle}
                         onChange={(e) => setEditTitle(e.target.value)}
-                        className="w-full bg-[#141C2E] border border-[#23314D] rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                        className="w-full bg-[#141C2E] border border-[#23314D] rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-amber-500"
                       />
                       <textarea
                         value={editContent}
                         onChange={(e) => setEditContent(e.target.value)}
                         rows={5}
-                        className="w-full bg-[#141C2E] border border-[#23314D] rounded p-3 text-xs text-white focus:outline-none focus:border-amber-500 leading-relaxed font-sans"
+                        className="w-full bg-[#141C2E] border border-[#23314D] rounded p-3 text-sm text-white focus:outline-none focus:border-amber-500 leading-relaxed font-sans"
                       />
                       <input
                         type="text"
                         value={editTags}
                         onChange={(e) => setEditTags(e.target.value)}
                         placeholder="Tags (comma separated)"
-                        className="w-full bg-[#141C2E] border border-[#23314D] rounded px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500"
+                        className="w-full bg-[#141C2E] border border-[#23314D] rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-amber-500"
                       />
                       <div className="flex justify-end gap-2 pt-2 border-t border-[#1E293B]">
                         <button
                           type="button"
                           onClick={() => setEditingNoteId(null)}
-                          className="px-3 py-1 bg-[#182337] text-slate-300 rounded text-xs"
+                          className="px-3 py-1 bg-[#182337] text-slate-300 rounded text-sm"
                         >
                           Cancel
                         </button>
                         <button
                           type="button"
                           onClick={() => handleSaveEditNote(note.id)}
-                          className="px-3.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-xs transition-colors flex items-center gap-1.5"
+                          className="px-3.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-sm transition-colors flex items-center gap-1.5"
                         >
                           <Save className="w-3.5 h-3.5" />
                           <span>Save Changes</span>
@@ -1204,13 +1204,13 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                     <>
                       <div className="flex items-center justify-between border-b border-[#1E293B] pb-3">
                         <div className="flex items-center gap-2">
-                          <h4 className="text-xs font-bold text-white">{note.title}</h4>
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          <h4 className="text-sm font-bold text-white">{note.title}</h4>
+                          <span className="text-sm font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                             SQLite Verified
                           </span>
                         </div>
                         <div className="flex items-center gap-2.5">
-                          <span className="text-[10px] font-mono text-slate-400">
+                          <span className="text-sm font-mono text-slate-400">
                             {new Date(note.createdAt).toLocaleDateString()}
                           </span>
                           <button
@@ -1230,7 +1230,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                         </div>
                       </div>
 
-                      <div className="text-xs text-slate-300 whitespace-pre-line leading-relaxed font-sans">
+                      <div className="text-sm text-slate-300 whitespace-pre-line leading-relaxed font-sans">
                         {note.content}
                       </div>
 
@@ -1239,7 +1239,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                           {note.tags.map((t) => (
                             <span
                               key={t}
-                              className="text-[10px] px-2 py-0.5 rounded bg-[#172236] text-slate-400 border border-[#21304C]"
+                              className="text-sm px-2 py-0.5 rounded bg-[#172236] text-slate-400 border border-[#21304C]"
                             >
                               #{t}
                             </span>
@@ -1261,15 +1261,15 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-[#101726] border border-[#233352] rounded-xl max-w-sm w-full p-6 space-y-4">
             <h2 className="text-sm font-bold text-white">Supprimer définitivement ce joueur ?</h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-sm text-slate-400">
               {p.firstName} {p.lastName} et les données associées seront retirés de la base.
             </p>
-            {deleteError && <p className="text-xs text-rose-300">{deleteError}</p>}
+            {deleteError && <p className="text-sm text-rose-300">{deleteError}</p>}
             <div className="flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setIsConfirmingDelete(false)}
-                className="px-3 py-2 text-xs text-slate-300"
+                className="px-3 py-2 text-sm text-slate-300"
               >
                 Annuler
               </button>
@@ -1277,7 +1277,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                 type="button"
                 onClick={handleConfirmDelete}
                 disabled={isDeleting}
-                className="px-3 py-2 bg-rose-500 text-white font-semibold rounded-md text-xs disabled:opacity-60"
+                className="px-3 py-2 bg-rose-500 text-white font-semibold rounded-md text-sm disabled:opacity-60"
               >
                 {isDeleting ? 'Suppression…' : 'Supprimer'}
               </button>

@@ -209,7 +209,7 @@ export const DataSyncPanel: React.FC<{
         type="button"
         onClick={() => downloadCsv('/api/csv/export', 'courtside_players.csv')}
         disabled={busy === 'download'}
-        className="px-3 py-1.5 bg-[#14231E] hover:bg-[#1B2F28] text-emerald-300 border border-emerald-500/30 rounded text-xs font-semibold transition-colors flex items-center gap-1.5 disabled:opacity-50"
+        className="px-3 py-1.5 bg-[#14231E] hover:bg-[#1B2F28] text-emerald-300 border border-emerald-500/30 rounded text-sm font-semibold transition-colors flex items-center gap-1.5 disabled:opacity-50"
       >
         <Download className="w-3.5 h-3.5" />
         <span>Download CSV</span>
@@ -218,12 +218,12 @@ export const DataSyncPanel: React.FC<{
         <button
           type="button"
           onClick={() => downloadCsv('/api/csv/template', 'courtside_non_ncaa_template.csv')}
-          className="px-3 py-1.5 bg-[#131B2C] hover:bg-[#1A2438] text-slate-200 border border-[#23314D] rounded text-xs font-medium transition-colors"
+          className="px-3 py-1.5 bg-[#131B2C] hover:bg-[#1A2438] text-slate-200 border border-[#23314D] rounded text-sm font-medium transition-colors"
         >
           Template
         </button>
       )}
-      <label className="px-3 py-1.5 bg-[#162035] hover:bg-[#1E2B47] text-slate-200 border border-[#23314D] rounded text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer">
+      <label className="px-3 py-1.5 bg-[#162035] hover:bg-[#1E2B47] text-slate-200 border border-[#23314D] rounded text-sm font-medium transition-colors flex items-center gap-1.5 cursor-pointer">
         <Upload className="w-3.5 h-3.5 text-sky-400" />
         <span>{busy === 'upload' ? 'Importing…' : 'Upload CSV'}</span>
         <input
@@ -245,7 +245,7 @@ export const DataSyncPanel: React.FC<{
       <div className="bg-[#101726] border border-[#1E293B] rounded-lg px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
           <span className={`w-2 h-2 rounded-full ${dotClass}`} />
-          <div className="text-xs text-slate-300">
+          <div className="text-sm text-slate-300">
             <span className="font-semibold text-slate-100">{label}</span>
             <span className="text-slate-500"> · </span>
             <span>Last sync {formatWhen(status?.lastSuccess?.at)}</span>
@@ -254,7 +254,7 @@ export const DataSyncPanel: React.FC<{
           </div>
         </div>
         {notice && (
-          <p className={`w-full text-[11px] ${noticeTone === 'ok' ? 'text-emerald-300' : 'text-rose-300'}`}>{notice}</p>
+          <p className={`w-full text-sm ${noticeTone === 'ok' ? 'text-emerald-300' : 'text-rose-300'}`}>{notice}</p>
         )}
       </div>
     );
@@ -265,60 +265,60 @@ export const DataSyncPanel: React.FC<{
       <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-5 space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-2">
+            <h2 className="text-base font-bold uppercase tracking-wider text-white flex items-center gap-2">
               <Radio className="w-4 h-4 text-sky-400" />
               NCAA sync status
             </h2>
-            <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+            <p className="text-sm text-slate-400 mt-1 leading-relaxed">
               CBB Stats is queried without a key. College Basketball Data uses CBBD_API_KEY from the server .env file. Snapshots stay in SQLite for {status?.ttlHours ?? 6} hours, and a failed request keeps the last cached copy.
             </p>
           </div>
           <button
             type="button"
             onClick={() => refreshMonitor()}
-            className="px-2.5 py-1.5 rounded bg-[#131B2C] border border-[#22314E] text-xs text-slate-300 hover:text-white flex items-center gap-1.5"
+            className="px-2.5 py-1.5 rounded bg-[#131B2C] border border-[#22314E] text-sm text-slate-300 hover:text-white flex items-center gap-1.5"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             Refresh
           </button>
         </div>
 
-        <div className="flex items-center gap-2 text-xs">
+        <div className="flex items-center gap-2 text-sm">
           <span className={`w-2 h-2 rounded-full ${dotClass}`} />
           <span className="font-semibold text-slate-100">{label}</span>
           <span className="text-slate-500">Last success {formatWhen(status?.lastSuccess?.at)}</span>
         </div>
 
         {status?.lastError && (
-          <div className="p-3 rounded bg-rose-500/10 border border-rose-500/30 text-rose-200 text-xs flex gap-2">
+          <div className="p-3 rounded bg-rose-500/10 border border-rose-500/30 text-rose-200 text-sm flex gap-2">
             <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
             <span>{status.lastError.provider}: {status.lastError.message}</span>
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
           {status?.providers.map((item) => (
             <div key={item.id} className="p-3 rounded bg-[#141C2E] border border-[#1F2C46]">
-              <div className="text-[10px] uppercase font-bold text-slate-400">{item.label}</div>
+              <div className="text-sm uppercase font-bold text-slate-400">{item.label}</div>
               <div className={`mt-1 font-semibold ${item.keyConfigured ? 'text-emerald-300' : 'text-amber-300'}`}>
                 {item.keyRequired ? (item.keyConfigured ? 'Key configured' : 'Key missing in .env') : 'No key required'}
               </div>
-              <div className="text-[11px] text-slate-500 mt-1">{item.coverage}</div>
+              <div className="text-sm text-slate-500 mt-1">{item.coverage}</div>
             </div>
           ))}
           <div className="p-3 rounded bg-[#141C2E] border border-[#1F2C46]">
-            <div className="text-[10px] uppercase font-bold text-slate-400">Local cache</div>
+            <div className="text-sm uppercase font-bold text-slate-400">Local cache</div>
             <div className="mt-1 font-mono text-white">{status?.cache.fresh ?? 0} fresh · {status?.cache.expired ?? 0} expired</div>
-            <div className="text-[11px] text-slate-500 mt-1">{status?.cache.entries ?? 0} stored responses</div>
+            <div className="text-sm text-slate-500 mt-1">{status?.cache.entries ?? 0} stored responses</div>
           </div>
         </div>
 
         {logs.length > 0 && (
           <div className="space-y-1.5">
-            <div className="text-[10px] uppercase font-bold text-slate-500">Sync log</div>
+            <div className="text-sm uppercase font-bold text-slate-500">Sync log</div>
             <ul className="divide-y divide-[#1E293B] border border-[#1E293B] rounded-md overflow-hidden">
               {logs.map((log) => (
-                <li key={log.id} className="px-3 py-2 bg-[#0E1422] text-[11px] flex items-start justify-between gap-3">
+                <li key={log.id} className="px-3 py-2 bg-[#0E1422] text-sm flex items-start justify-between gap-3">
                   <span className="text-slate-300">
                     <span className={log.status === 'error' ? 'text-rose-300' : 'text-emerald-300'}>{log.status}</span>
                     <span className="text-slate-500"> · {log.provider}</span>
@@ -333,12 +333,12 @@ export const DataSyncPanel: React.FC<{
       </div>
 
       <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-5 space-y-3">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-white">Find an NCAA player</h3>
+        <h3 className="text-base font-bold uppercase tracking-wider text-white">Find an NCAA player</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
           <select
             value={provider}
             onChange={(event) => setProvider(event.target.value as 'cbb' | 'cbd')}
-            className="bg-[#141C2E] border border-[#23314D] rounded-md px-2.5 py-1.5 text-xs text-slate-100"
+            className="bg-[#141C2E] border border-[#23314D] rounded-md px-2.5 py-1.5 text-sm text-slate-100"
           >
             <option value="cbb">CBB Stats (name)</option>
             <option value="cbd">College Basketball Data (team)</option>
@@ -347,38 +347,38 @@ export const DataSyncPanel: React.FC<{
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder={provider === 'cbb' ? 'Player name' : 'Optional name filter'}
-            className="bg-[#141C2E] border border-[#23314D] rounded-md px-2.5 py-1.5 text-xs text-slate-100 placeholder:text-slate-500"
+            className="bg-[#141C2E] border border-[#23314D] rounded-md px-2.5 py-1.5 text-sm text-slate-100 placeholder:text-slate-500"
           />
           <input
             value={team}
             onChange={(event) => setTeam(event.target.value)}
             placeholder={provider === 'cbd' ? 'Team, e.g. Duke' : 'Team (CBD only)'}
-            className="bg-[#141C2E] border border-[#23314D] rounded-md px-2.5 py-1.5 text-xs text-slate-100 placeholder:text-slate-500"
+            className="bg-[#141C2E] border border-[#23314D] rounded-md px-2.5 py-1.5 text-sm text-slate-100 placeholder:text-slate-500"
           />
           <input
             value={season}
             onChange={(event) => setSeason(event.target.value)}
             placeholder="Season end year"
-            className="bg-[#141C2E] border border-[#23314D] rounded-md px-2.5 py-1.5 text-xs text-slate-100"
+            className="bg-[#141C2E] border border-[#23314D] rounded-md px-2.5 py-1.5 text-sm text-slate-100"
           />
         </div>
         <button
           type="button"
           onClick={searchPlayers}
           disabled={busy === 'search'}
-          className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-xs flex items-center gap-1.5 disabled:opacity-50"
+          className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded text-sm flex items-center gap-1.5 disabled:opacity-50"
         >
           <Search className="w-3.5 h-3.5" />
           {busy === 'search' ? 'Searching…' : 'Search and cache'}
         </button>
-        {searchNote && <p className="text-[11px] text-slate-400">{searchNote}</p>}
+        {searchNote && <p className="text-sm text-slate-400">{searchNote}</p>}
         {hits.length > 0 && (
           <ul className="divide-y divide-[#1E293B] border border-[#1E293B] rounded-md overflow-hidden">
             {hits.map((hit) => (
-              <li key={`${hit.provider}-${hit.externalId}`} className="px-3 py-2 bg-[#0E1422] flex items-center justify-between gap-3 text-xs">
+              <li key={`${hit.provider}-${hit.externalId}`} className="px-3 py-2 bg-[#0E1422] flex items-center justify-between gap-3 text-sm">
                 <div>
                   <div className="text-slate-100 font-semibold">{hit.name}</div>
-                  <div className="text-[11px] text-slate-400">{hit.team} · {hit.position || 'Position unavailable'} · {hit.season || 'Season n/a'}</div>
+                  <div className="text-sm text-slate-400">{hit.team} · {hit.position || 'Position unavailable'} · {hit.season || 'Season n/a'}</div>
                 </div>
                 <button
                   type="button"
@@ -395,15 +395,15 @@ export const DataSyncPanel: React.FC<{
       </div>
 
       <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-5 space-y-3">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-white">Non-NCAA CSV import and export</h3>
-        <p className="text-xs text-slate-400 leading-relaxed">
+        <h3 className="text-base font-bold uppercase tracking-wider text-white">Non-NCAA CSV import and export</h3>
+        <p className="text-sm text-slate-400 leading-relaxed">
           Overtime Elite, Europe, High School, G League, and NCAA Division II/III have no free player API here. Upload a CSV to map those rows onto the local player and season-stat tables. Download exports the current database, including NCAA rows already cached.
         </p>
         {csvButtons}
       </div>
 
       {notice && (
-        <div className={`p-3.5 rounded-lg text-xs font-medium flex items-center gap-2 ${noticeTone === 'ok' ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-300' : 'bg-rose-500/10 border border-rose-500/30 text-rose-200'}`}>
+        <div className={`p-3.5 rounded-lg text-sm font-medium flex items-center gap-2 ${noticeTone === 'ok' ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-300' : 'bg-rose-500/10 border border-rose-500/30 text-rose-200'}`}>
           {noticeTone === 'ok' ? <Check className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
           <span>{notice}</span>
         </div>

@@ -184,7 +184,7 @@ export const FilmSequencePlayer: React.FC<FilmSequencePlayerProps> = ({
           <div ref={hostRef} className="h-full w-full [&_iframe]:h-full [&_iframe]:w-full" />
         </div>
       ) : (
-        <div className="rounded-lg border border-[#1E293B] bg-[#0C1220] px-4 py-5 text-xs text-slate-300">
+        <div className="rounded-lg border border-[#1E293B] bg-[#0C1220] px-4 py-5 text-sm text-slate-300">
           <p>
             Le lecteur intégré suit les liens YouTube. Cette séquence s&apos;ouvre dans un nouvel onglet.
           </p>
@@ -201,14 +201,14 @@ export const FilmSequencePlayer: React.FC<FilmSequencePlayerProps> = ({
       )}
 
       {description && (
-        <p className="text-xs text-slate-300 leading-relaxed">
+        <p className="text-sm text-slate-300 leading-relaxed">
           <ClickableScoutNote text={description} onSeek={(seconds) => seekTo(seconds)} />
         </p>
       )}
 
       {markers.length > 0 && (
         <div className="space-y-2 pt-2 border-t border-[#1C263B]">
-          <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+          <div className="text-sm uppercase font-bold tracking-wider text-slate-400">
             {heading}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
@@ -217,7 +217,7 @@ export const FilmSequencePlayer: React.FC<FilmSequencePlayerProps> = ({
               return (
                 <div
                   key={`${marker.label}-${marker.seconds}-${index}`}
-                  className={`p-2.5 rounded bg-[#131C2D] border flex items-start gap-2.5 text-xs ${
+                  className={`p-2.5 rounded bg-[#131C2D] border flex items-start gap-2.5 text-sm ${
                     active ? 'border-amber-400/60' : 'border-[#202E4A]'
                   }`}
                 >

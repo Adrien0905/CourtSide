@@ -66,25 +66,25 @@ export const VideoLibraryView: React.FC = () => {
   };
 
   return (
-    <div className="p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="min-h-full w-full px-8 py-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2.5">
+          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
             <Film className="w-5 h-5 text-amber-400" />
             <span>Video Library & Timestamp Notes</span>
-            <span className="text-xs font-mono font-medium text-slate-400">
+            <span className="text-sm font-mono font-medium text-slate-400">
               ({videos.length} clips recorded)
             </span>
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-sm text-slate-400 mt-0.5">
             Film study database with clickable timestamps for precise possession analysis.
           </p>
         </div>
 
         <button
           onClick={() => setIsAddingVideo(!isAddingVideo)}
-          className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs rounded-md transition-colors flex items-center gap-1.5 shadow-sm self-start sm:self-auto"
+          className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-sm rounded-md transition-colors flex items-center gap-1.5 shadow-sm self-start sm:self-auto"
         >
           <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
           <span>{isAddingVideo ? 'Cancel' : 'Add Video Breakdown'}</span>
@@ -93,14 +93,14 @@ export const VideoLibraryView: React.FC = () => {
 
       {/* New Video Form */}
       {isAddingVideo && (
-        <form onSubmit={handleSubmit} className="bg-[#111827] border border-amber-500/40 rounded-lg p-6 space-y-4 text-xs shadow-xl">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-amber-400">
+        <form onSubmit={handleSubmit} className="bg-[#111827] border border-amber-500/40 rounded-lg p-6 space-y-4 text-sm shadow-xl">
+          <h2 className="text-base font-bold uppercase tracking-wider text-amber-400">
             Log New Video Film Study
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
+              <label className="block text-sm uppercase font-bold text-slate-400 mb-1">
                 Target Prospect *
               </label>
               <select
@@ -118,7 +118,7 @@ export const VideoLibraryView: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
+              <label className="block text-sm uppercase font-bold text-slate-400 mb-1">
                 Video Title *
               </label>
               <input
@@ -133,7 +133,7 @@ export const VideoLibraryView: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
+            <label className="block text-sm uppercase font-bold text-slate-400 mb-1">
               Video URL (YouTube or Replay Link) *
             </label>
             <input
@@ -147,7 +147,7 @@ export const VideoLibraryView: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">
+            <label className="block text-sm uppercase font-bold text-slate-400 mb-1">
               Description / Film Context
             </label>
             <textarea
@@ -161,7 +161,7 @@ export const VideoLibraryView: React.FC = () => {
 
           {/* Timestamps Builder */}
           <div className="p-4 rounded-lg bg-[#131B2A] border border-[#1E283F] space-y-3">
-            <h3 className="text-[11px] uppercase font-bold text-amber-400 tracking-wider">
+            <h3 className="text-sm uppercase font-bold text-amber-400 tracking-wider">
               Timestamped Observations
             </h3>
 
@@ -173,7 +173,7 @@ export const VideoLibraryView: React.FC = () => {
                   className="flex items-center justify-between p-2 rounded bg-[#182337] border border-[#23334F]"
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className="font-mono font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded text-[11px]">
+                    <span className="font-mono font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded text-sm">
                       {ts.label}
                     </span>
                     <span className="text-slate-200">{ts.note}</span>
@@ -238,7 +238,7 @@ export const VideoLibraryView: React.FC = () => {
         <div className="p-12 text-center text-slate-400 bg-[#111827] border border-[#1E293B] rounded-lg">
           <Film className="w-8 h-8 text-amber-500/40 mx-auto mb-2" />
           <p className="text-sm font-medium">No video cutups recorded</p>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-sm text-slate-400 mt-1">
             Add YouTube or game film links with timestamped observations.
           </p>
         </div>
@@ -262,7 +262,7 @@ export const VideoLibraryView: React.FC = () => {
                     {p && (
                       <button
                         onClick={() => openProspect(p.id, 'video')}
-                        className="text-xs text-amber-400 hover:underline mt-1 block"
+                        className="text-sm text-amber-400 hover:underline mt-1 block"
                       >
                         Prospect: {p.firstName} {p.lastName} ({p.primaryPosition} · {p.currentTeam})
                       </button>
@@ -273,7 +273,7 @@ export const VideoLibraryView: React.FC = () => {
                     href={vid.videoUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="px-3.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0 self-start sm:self-auto"
+                    className="px-3.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-sm font-semibold flex items-center gap-1.5 transition-colors shrink-0 self-start sm:self-auto"
                   >
                     <span>Open External Video</span>
                     <ExternalLink className="w-3 h-3" />

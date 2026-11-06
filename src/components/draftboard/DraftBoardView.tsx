@@ -98,14 +98,14 @@ export const DraftBoardView: React.FC = () => {
   };
 
   return (
-    <div className="p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="min-h-full w-full px-8 py-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2.5">
+          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
             <Trophy className="w-5 h-5 text-amber-400" />
             <span>My Personal Draft Board</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-sm text-slate-400 mt-0.5">
             Personal tiers only. Rankings are written by you and saved in SQLite.
           </p>
         </div>
@@ -114,7 +114,7 @@ export const DraftBoardView: React.FC = () => {
             <button
               key={filter}
               onClick={() => setActiveBoardFilter(filter)}
-              className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${
+              className={`px-3 py-1 text-sm font-semibold rounded-md transition-colors ${
                 activeBoardFilter === filter
                   ? 'bg-amber-500 text-slate-950'
                   : 'text-slate-400 hover:text-slate-200'
@@ -127,12 +127,12 @@ export const DraftBoardView: React.FC = () => {
       </div>
 
       {unrankedProspects.length > 0 && (
-        <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-3.5 flex flex-col sm:flex-row items-center gap-3 text-xs">
+        <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-3.5 flex flex-col sm:flex-row items-center gap-3 text-sm">
           <Plus className="w-4 h-4 text-amber-400" />
           <select
             value={addProspectSelectId}
             onChange={(e) => setAddProspectSelectId(e.target.value)}
-            className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-1.5 text-xs text-white"
+            className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-1.5 text-sm text-white"
           >
             <option value="">Select prospect...</option>
             {unrankedProspects.map((prospect) => (
@@ -144,7 +144,7 @@ export const DraftBoardView: React.FC = () => {
           <select
             value={addTier}
             onChange={(e) => setAddTier(Number(e.target.value))}
-            className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-1.5 text-xs text-sky-300"
+            className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-1.5 text-sm text-sky-300"
           >
             {TIERS.map((tier) => (
               <option key={tier} value={tier}>Tier {tier}</option>
@@ -172,7 +172,7 @@ export const DraftBoardView: React.FC = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
         {TIERS.map((tier) => {
           const entries = ordered.filter((entry) => entry.tier === tier && visible(entry));
           return (
@@ -182,13 +182,13 @@ export const DraftBoardView: React.FC = () => {
               onDrop={() => dropOnTier(tier)}
               className="bg-[#111827] border border-[#1E293B] rounded-lg min-h-40"
             >
-              <header className="px-4 py-3 border-b border-[#1E293B] text-xs font-bold uppercase tracking-wider text-sky-300">
+              <header className="px-4 py-3 border-b border-[#1E293B] text-base font-bold uppercase tracking-wider text-sky-300">
                 Tier {tier}
                 <span className="ml-2 text-slate-500 font-mono">{entries.length}</span>
               </header>
               <div className="p-3 space-y-2">
                 {entries.length === 0 && (
-                  <p className="text-[11px] text-slate-500 px-1 py-4">Drop a prospect here.</p>
+                  <p className="text-sm text-slate-500 px-1 py-4">Drop a prospect here.</p>
                 )}
                 {entries.map((entry) => {
                   const prospect = prospects.find((item) => item.id === entry.prospectId);
@@ -217,7 +217,7 @@ export const DraftBoardView: React.FC = () => {
                             <span className="font-mono text-amber-400 mr-2">#{entry.rank}</span>
                             {prospect.firstName} {prospect.lastName}
                           </div>
-                          <div className="text-[11px] text-slate-400">
+                          <div className="text-sm text-slate-400">
                             {prospect.primaryPosition} · {prospect.currentTeam}
                             {entry.previousRank && entry.previousRank !== entry.rank
                               ? ` · ${entry.rank < entry.previousRank ? '+' : '-'}${Math.abs(entry.previousRank - entry.rank)}`
@@ -254,7 +254,7 @@ export const DraftBoardView: React.FC = () => {
                           <input
                             value={justificationText}
                             onChange={(event) => setJustificationText(event.target.value)}
-                            className="flex-1 bg-[#182338] border border-amber-500 rounded px-2 py-1 text-xs text-white"
+                            className="flex-1 bg-[#182338] border border-amber-500 rounded px-2 py-1 text-sm text-white"
                           />
                           <button
                             onClick={() => {
@@ -267,7 +267,7 @@ export const DraftBoardView: React.FC = () => {
                               );
                               setEditingJustificationId(null);
                             }}
-                            className="px-2 py-1 bg-amber-500 text-slate-950 rounded text-[11px] font-bold"
+                            className="px-2 py-1 bg-amber-500 text-slate-950 rounded text-sm font-bold"
                           >
                             Save
                           </button>
@@ -278,7 +278,7 @@ export const DraftBoardView: React.FC = () => {
                             setEditingJustificationId(entry.prospectId);
                             setJustificationText(entry.justification || '');
                           }}
-                          className="text-left text-[11px] italic text-slate-400 hover:text-slate-200"
+                          className="text-left text-sm italic text-slate-400 hover:text-slate-200"
                         >
                           {entry.justification || 'Add a personal justification...'}
                         </button>

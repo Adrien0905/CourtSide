@@ -28,7 +28,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   return (
-    <aside className="w-64 bg-[#0D121F] border-r border-[#1E293B] flex flex-col h-screen shrink-0 select-none">
+    <aside className="w-72 bg-[#0D121F] border-r border-[#1E293B] flex flex-col h-screen shrink-0 select-none">
       {/* Brand & Draft Focus */}
       <div className="p-5 border-b border-[#1E293B]">
         <div className="flex items-center gap-2.5">
@@ -56,16 +56,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="px-4 py-3.5 space-y-2 border-b border-[#1E293B]">
         <button
           onClick={onOpenNewProspectModal}
-          className="w-full py-2 px-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs rounded-md transition-colors flex items-center justify-center gap-2 shadow-sm"
+          className="w-full py-2.5 px-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-base rounded-md transition-colors flex items-center justify-center gap-2 shadow-sm"
         >
-          <PlusCircle className="w-3.5 h-3.5 stroke-[2.5]" />
+          <PlusCircle className="w-5 h-5 stroke-[2.5]" />
           <span>Add Prospect</span>
         </button>
       </div>
 
       {/* Main Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+        <div className="px-3.5 pb-2 text-xs font-bold uppercase tracking-wider text-slate-500">
           Workstation
         </div>
         {navItems.map((item) => {
@@ -75,7 +75,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               key={item.id}
               onClick={() => setActiveView(item.id)}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-medium transition-all ${
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-md text-base font-medium transition-all ${
                 isActive
                   ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-[#151D2F]'
@@ -83,7 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <div className="flex items-center gap-3">
                 <Icon
-                  className={`w-4 h-4 transition-colors ${
+                  className={`w-5 h-5 transition-colors ${
                     isActive ? 'text-amber-400' : 'text-slate-400'
                   }`}
                 />
@@ -91,7 +91,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
               {item.count !== undefined && (
                 <span
-                  className={`text-[11px] font-mono px-1.5 py-0.5 rounded ${
+                  className={`text-sm font-mono px-2 py-0.5 rounded ${
                     isActive
                       ? 'bg-amber-500/20 text-amber-300 font-bold'
                       : 'text-slate-500 bg-[#162032]'

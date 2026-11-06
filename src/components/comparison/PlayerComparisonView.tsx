@@ -50,15 +50,15 @@ export const PlayerComparisonView: React.FC = () => {
   };
 
   return (
-    <div className="p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="min-h-full w-full px-8 py-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2.5">
+          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
             <GitCompare className="w-5 h-5 text-sky-400" />
             <span>Prospect Comparison Matrix</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-sm text-slate-400 mt-0.5">
             Side-by-side comparative analysis of physicals, production, advanced metrics, and scouting grades.
           </p>
         </div>
@@ -66,7 +66,7 @@ export const PlayerComparisonView: React.FC = () => {
         {selectedProspects.length > 0 && (
           <button
             onClick={clearComparison}
-            className="text-xs text-slate-400 hover:text-rose-400 transition-colors flex items-center gap-1 self-start sm:self-auto"
+            className="text-sm text-slate-400 hover:text-rose-400 transition-colors flex items-center gap-1 self-start sm:self-auto"
           >
             <X className="w-3.5 h-3.5" />
             <span>Clear Matrix</span>
@@ -76,21 +76,21 @@ export const PlayerComparisonView: React.FC = () => {
 
       {/* Selector pills */}
       <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-3.5 flex flex-wrap items-center gap-2">
-        <span className="text-xs font-semibold text-slate-400 mr-2">
+        <span className="text-sm font-semibold text-slate-400 mr-2">
           Select 2 prospects:
         </span>
         {availableProspectsToAdd.length === 0 ? (
-          <span className="text-xs text-slate-500">All available prospects selected.</span>
+          <span className="text-sm text-slate-500">All available prospects selected.</span>
         ) : (
           availableProspectsToAdd.map((p) => (
             <button
               key={p.id}
               onClick={() => toggleComparisonProspect(p.id)}
-              className="px-2.5 py-1 rounded bg-[#151D2F] hover:bg-[#1C273E] border border-[#23314D] text-xs font-medium text-slate-300 hover:text-white transition-colors flex items-center gap-1.5"
+              className="px-2.5 py-1 rounded bg-[#151D2F] hover:bg-[#1C273E] border border-[#23314D] text-sm font-medium text-slate-300 hover:text-white transition-colors flex items-center gap-1.5"
             >
               <Plus className="w-3 h-3 text-amber-400" />
               <span>{p.firstName} {p.lastName}</span>
-              <span className="text-[10px] text-slate-400 font-mono">({p.primaryPosition})</span>
+              <span className="text-sm text-slate-400 font-mono">({p.primaryPosition})</span>
             </button>
           ))
         )}
@@ -100,7 +100,7 @@ export const PlayerComparisonView: React.FC = () => {
         <div className="p-12 text-center text-slate-400 bg-[#111827] border border-[#1E293B] rounded-lg">
           <GitCompare className="w-8 h-8 text-sky-500/40 mx-auto mb-2" />
           <p className="text-sm font-medium">Matrix is empty</p>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-sm text-slate-400 mt-1">
             Select two prospects to compare physicals, production, and personal scouting grades.
           </p>
         </div>
@@ -109,7 +109,7 @@ export const PlayerComparisonView: React.FC = () => {
           {/* Radar Overlay Comparison if at least 2 prospects and at least one has an authored report */}
           {p1 && p2 && overlayPrimary && (
             <div className="bg-[#111827] border border-[#1E293B] rounded-lg p-6 flex flex-col items-center justify-center space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 self-start">
+              <h3 className="text-base font-bold uppercase tracking-wider text-slate-300 self-start">
                 Comparative Skill Radar Overlay
               </h3>
               <RadarChart
@@ -124,10 +124,10 @@ export const PlayerComparisonView: React.FC = () => {
 
           {/* Side-by-side Table */}
           <div className="bg-[#111827] border border-[#1E293B] rounded-lg overflow-x-auto shadow-xl">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left text-sm border-collapse">
               <thead>
                 <tr className="bg-[#0E1422] border-b border-[#1E293B]">
-                  <th className="py-3 px-4 w-48 font-bold uppercase text-slate-400 text-[11px]">
+                  <th className="py-3 px-4 w-48 font-bold uppercase text-slate-400 text-sm">
                     Attribute / Metric
                   </th>
                   {selectedProspects.map((p, idx) => (
@@ -143,7 +143,7 @@ export const PlayerComparisonView: React.FC = () => {
                           >
                             {p.firstName} {p.lastName}
                           </button>
-                          <div className="text-[11px] text-slate-400 font-mono">
+                          <div className="text-sm text-slate-400 font-mono">
                             {p.primaryPosition} · {p.currentTeam}
                           </div>
                         </div>
@@ -161,7 +161,7 @@ export const PlayerComparisonView: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-[#182338]">
                 {/* Physical Tools */}
-                <tr className="bg-[#101726]/80 text-[11px] font-bold uppercase tracking-wider text-amber-400">
+                <tr className="bg-[#101726]/80 text-base font-bold uppercase tracking-wider text-amber-400">
                   <td colSpan={selectedProspects.length + 1} className="py-2 px-4">
                     Physical Tools & Anthropometrics
                   </td>
@@ -200,7 +200,7 @@ export const PlayerComparisonView: React.FC = () => {
                 </tr>
 
                 {/* Scouting Grades */}
-                <tr className="bg-[#101726]/80 text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+                <tr className="bg-[#101726]/80 text-base font-bold uppercase tracking-wider text-emerald-400">
                   <td colSpan={selectedProspects.length + 1} className="py-2 px-4">
                     Scout Grades (1 to 10 Scale)
                   </td>
@@ -226,7 +226,7 @@ export const PlayerComparisonView: React.FC = () => {
                       return (
                         <td key={prospect.id} className={`py-2.5 px-4 font-mono tabular-nums ${leadClass(value, other)}`}>
                           {value === undefined || value <= 0 ? '—' : value.toFixed(1)}
-                          <span className="text-[10px]">{deltaLabel(value, other)}</span>
+                          <span className="text-sm">{deltaLabel(value, other)}</span>
                         </td>
                       );
                     })}
@@ -234,7 +234,7 @@ export const PlayerComparisonView: React.FC = () => {
                 ))}
 
                 {/* NBA Projection */}
-                <tr className="bg-[#101726]/80 text-[11px] font-bold uppercase tracking-wider text-sky-400">
+                <tr className="bg-[#101726]/80 text-base font-bold uppercase tracking-wider text-sky-400">
                   <td colSpan={selectedProspects.length + 1} className="py-2 px-4">
                     NBA Translation
                   </td>
@@ -265,7 +265,7 @@ export const PlayerComparisonView: React.FC = () => {
                 </tr>
 
                 {/* Board Rank */}
-                <tr className="bg-[#101726]/80 text-[11px] font-bold uppercase tracking-wider text-slate-300">
+                <tr className="bg-[#101726]/80 text-base font-bold uppercase tracking-wider text-slate-300">
                   <td colSpan={selectedProspects.length + 1} className="py-2 px-4">
                     Draft Board Standing
                   </td>
