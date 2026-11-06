@@ -253,7 +253,6 @@ export const DataSyncPanel: React.FC<{
             <span className="font-mono">{status?.cache.fresh ?? 0} fresh / {status?.cache.entries ?? 0} cached</span>
           </div>
         </div>
-        {csvButtons}
         {notice && (
           <p className={`w-full text-[11px] ${noticeTone === 'ok' ? 'text-emerald-300' : 'text-rose-300'}`}>{notice}</p>
         )}

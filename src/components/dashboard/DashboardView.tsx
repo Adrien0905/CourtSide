@@ -3,29 +3,18 @@ import {
   Users,
   FileSpreadsheet,
   Trophy,
-  CalendarDays,
   Clock,
   ArrowRight,
-  PlusCircle,
   AlertCircle,
   Star,
   Film
 } from 'lucide-react';
 import { useScouting } from '../../context/ScoutingContext';
 
-interface DashboardViewProps {
-  onOpenNewProspectModal: () => void;
-  onOpenNewReportModal: () => void;
-}
-
-export const DashboardView: React.FC<DashboardViewProps> = ({
-  onOpenNewProspectModal,
-  onOpenNewReportModal,
-}) => {
+export const DashboardView: React.FC = () => {
   const {
     prospects,
     reports,
-    gameLogs,
     draftBoard,
     videos,
     setSelectedProspectId,
@@ -66,23 +55,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             Personal talent intelligence database for tracking, grading, and ranking prospects.
           </p>
         </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onOpenNewProspectModal}
-            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs rounded-md transition-colors flex items-center gap-1.5 shadow-sm"
-          >
-            <PlusCircle className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>Add Prospect</span>
-          </button>
-          <button
-            onClick={onOpenNewReportModal}
-            className="px-3 py-1.5 bg-[#172238] hover:bg-[#1E2D4A] text-slate-200 border border-[#27385A] text-xs font-medium rounded-md transition-colors flex items-center gap-1.5"
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-amber-400" />
-            <span>Create Report</span>
-          </button>
-        </div>
       </div>
 
       {/* KPI Cards Strip */}
@@ -115,14 +87,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         <div className="bg-[#111827] border border-[#1F293D] rounded-lg p-3.5">
           <div className="flex items-center justify-between text-slate-400 text-xs mb-1.5">
-            <span>Games Scouted</span>
-            <CalendarDays className="w-4 h-4 text-sky-400" />
+            <span>Video Clips</span>
+            <Film className="w-4 h-4 text-sky-400" />
           </div>
           <div className="text-2xl font-bold font-mono text-white tabular-nums">
-            {gameLogs.length}
+            {videos.length}
           </div>
           <div className="text-[11px] text-slate-400 mt-1">
-            Film logs & observations
+            Timestamped film studies
           </div>
         </div>
 

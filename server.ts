@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import express from 'express';
+import express, { type Request, type Response } from 'express';
 import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import fs from 'fs';
@@ -234,6 +234,7 @@ for (const statement of [
   'ALTER TABLE prospects ADD COLUMN external_cbb_id TEXT',
   'ALTER TABLE prospects ADD COLUMN external_cbd_id TEXT',
   'ALTER TABLE prospects ADD COLUMN source_provider TEXT',
+  'ALTER TABLE prospects ADD COLUMN avatar_url TEXT',
 ]) {
   try {
     db.prepare(statement).run();
@@ -603,10 +604,11 @@ app.post('/api/prospects', (req, res) => {
   }
 });
 
-app.put('/api/prospects/:id', (req, res) => {
+function updatePlayer(req: Request, res: Response) {
   try {
     const p = req.body;
     const now = new Date().toISOString();
+    const measurements = p.measurements || {};
 
     const existing = db.prepare('SELECT * FROM prospects WHERE id = ?').get(req.params.id) as any;
     if (!existing) return res.status(404).json({ error: 'Prospect not found' });
@@ -621,6 +623,13 @@ app.put('/api/prospects/:id', (req, res) => {
         current_league = COALESCE(?, current_league),
         primary_position = COALESCE(?, primary_position),
         secondary_position = COALESCE(?, secondary_position),
+        height_inches = COALESCE(?, height_inches),
+        height_formatted = COALESCE(?, height_formatted),
+        weight_lbs = COALESCE(?, weight_lbs),
+        wingspan_inches = COALESCE(?, wingspan_inches),
+        wingspan_formatted = COALESCE(?, wingspan_formatted),
+        standing_reach_inches = COALESCE(?, standing_reach_inches),
+        standing_reach_formatted = COALESCE(?, standing_reach_formatted),
         tags = COALESCE(?, tags),
         updated_at = ?
       WHERE id = ?
@@ -633,7 +642,14 @@ app.put('/api/prospects/:id', (req, res) => {
       p.currentLeague ?? null,
       p.primaryPosition ?? null,
       p.secondaryPosition ?? null,
-      p.tags ? JSON.stringify(p.tags) : null,
+      measurements.heightInches ?? null,
+      measurements.heightFormatted ?? null,
+      measurements.weightLbs ?? null,
+      measurements.wingspanInches ?? null,
+      measurements.wingspanFormatted ?? null,
+      measurements.standingReachInches ?? null,
+      measurements.standingReachFormatted ?? null,
+      Array.isArray(p.tags) ? JSON.stringify(p.tags) : null,
       now,
       req.params.id
     );
@@ -643,16 +659,38 @@ app.put('/api/prospects/:id', (req, res) => {
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
-});
+}
 
-app.delete('/api/prospects/:id', (req, res) => {
+function deletePlayer(req: Request, res: Response) {
   try {
-    db.prepare('DELETE FROM prospects WHERE id = ?').run(req.params.id);
-    res.json({ success: true, id: req.params.id });
+    const id = req.params.id;
+    const existing = db.prepare('SELECT id FROM prospects WHERE id = ?').get(id);
+    if (!existing) return res.status(404).json({ error: 'Prospect not found' });
+
+    const remove = db.transaction(() => {
+      for (const table of [
+        'season_stats',
+        'scouting_reports',
+        'freeform_notes',
+        'game_logs',
+        'video_clips',
+        'draft_boards',
+      ]) {
+        db.prepare(`DELETE FROM ${table} WHERE prospect_id = ?`).run(id);
+      }
+      db.prepare('DELETE FROM prospects WHERE id = ?').run(id);
+    });
+    remove();
+    res.json({ success: true, id });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
-});
+}
+
+app.put('/api/prospects/:id', updatePlayer);
+app.put('/api/players/:id', updatePlayer);
+app.delete('/api/prospects/:id', deletePlayer);
+app.delete('/api/players/:id', deletePlayer);
 
 // Scouting Reports
 app.get('/api/reports', (req, res) => {

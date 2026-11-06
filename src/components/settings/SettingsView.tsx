@@ -16,7 +16,7 @@ export const SettingsView: React.FC = () => {
     prospects,
     reports,
     draftBoard,
-    gameLogs,
+    notes,
     refreshAllData,
   } = useScouting();
 
@@ -83,8 +83,8 @@ export const SettingsView: React.FC = () => {
             <div className="text-lg font-mono font-bold text-sky-400 mt-0.5">{draftBoard.length}</div>
           </div>
           <div className="p-3 rounded bg-[#141C2E] border border-[#1F2C46]">
-            <div className="text-[10px] uppercase font-bold text-slate-400">Game Logs</div>
-            <div className="text-lg font-mono font-bold text-emerald-400 mt-0.5">{gameLogs.length}</div>
+            <div className="text-[10px] uppercase font-bold text-slate-400">Notes</div>
+            <div className="text-lg font-mono font-bold text-emerald-400 mt-0.5">{notes.length}</div>
           </div>
         </div>
       </div>
@@ -100,7 +100,7 @@ export const SettingsView: React.FC = () => {
             </h3>
           </div>
           <p className="text-xs text-slate-400 leading-relaxed">
-            Downloads a single human-readable JSON file containing all prospects, scouting reports, radar evaluations, game logs, and Draft Board rankings.
+            Downloads a single human-readable JSON file containing all prospects, scouting reports, radar evaluations, notes, and Draft Board rankings.
           </p>
           <button
             onClick={exportJSONBackup}

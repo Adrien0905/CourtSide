@@ -7,8 +7,6 @@ import {
   Award,
   FileSpreadsheet,
   Film,
-  CalendarDays,
-  History,
   TrendingUp,
   AlertTriangle,
   CheckCircle2,
@@ -41,7 +39,9 @@ function fmtShot(value: number | null | undefined): string {
   return `${(Number(value) * 100).toFixed(1)}%`;
 }
 import { RadarChart, categoryRadarPoints } from '../common/RadarChart';
+import { PlayerAvatar } from '../common/PlayerAvatar';
 import { FilmSequencePlayer } from '../video/FilmSequencePlayer';
+import { EditProspectModal } from '../prospects/EditProspectModal';
 import { collectClipMarkers, parseTimeToSeconds } from '../../lib/videoTime';
 import { ProspectStatus, ScoutingReport, confidenceLabel } from '../../types/scouting';
 
@@ -59,7 +59,6 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
     updateProspect,
     reports,
     notes,
-    gameLogs,
     videos,
     addNote,
     updateNote,
@@ -70,8 +69,8 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
     comparisonProspectIds,
     dossierFocus,
     setDossierFocus,
-    addGameLog,
     addVideoClip,
+    deleteProspect,
   } = useScouting();
 
   const [activeTab, setActiveTab] = useState<DossierTab>(dossierFocus);
@@ -85,8 +84,11 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
   const [editTags, setEditTags] = useState('');
-  const [isAddingGame, setIsAddingGame] = useState(false);
   const [isAddingVideo, setIsAddingVideo] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   React.useEffect(() => {
     setActiveTab(dossierFocus);
@@ -140,14 +142,25 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
     });
   };
   const playerNotes = notes.filter((n) => n.prospectId === p.id);
-  const playerGameLogs = gameLogs.filter((g) => g.prospectId === p.id);
   const playerVideos = videos.filter((v) => v.prospectId === p.id);
   const latestReport = playerReports[0] || p.latestReport;
   const seasonStats = dedupeSeasonStats(p.stats);
   const currentStats = seasonStats[0];
 
   const handleStatusChange = (newStatus: ProspectStatus) => {
-    updateProspect(p.id, { status: newStatus });
+    updateProspect(p.id, { status: newStatus }).catch((err) => {
+      console.error('[COURTSIDE] Failed to update prospect status', err);
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    setIsDeleting(true);
+    setDeleteError('');
+    deleteProspect(p.id).catch((err) => {
+      console.error('[COURTSIDE] Failed to delete prospect', err);
+      setDeleteError(err instanceof Error ? err.message : 'Suppression impossible');
+      setIsDeleting(false);
+    });
   };
 
   const handleSaveNote = (e: React.FormEvent) => {
@@ -202,10 +215,12 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           {/* Avatar & Biographical Information */}
           <div className="flex items-start gap-5">
-            <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-[#1A253D] to-[#121A2C] border-2 border-[#243452] flex items-center justify-center text-2xl font-bold font-mono text-amber-400 shadow-md shrink-0">
-              {p.firstName[0]}
-              {p.lastName[0]}
-            </div>
+            <PlayerAvatar
+              firstName={p.firstName}
+              lastName={p.lastName}
+              avatarUrl={p.avatarUrl}
+              size="lg"
+            />
 
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2.5">
@@ -296,13 +311,20 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
               {isCompared ? '✓ Selected in Matrix' : '+ Compare'}
             </button>
 
-            {/* Add Report button */}
             <button
-              onClick={onOpenNewReportModal}
-              className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs rounded-md transition-colors flex items-center gap-1.5 shadow-sm"
+              onClick={() => setIsEditingProfile(true)}
+              className="px-3 py-1.5 bg-[#151D2F] hover:bg-[#1C2740] text-slate-200 border border-[#23314D] text-xs font-medium rounded-md"
             >
-              <FileSpreadsheet className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>Add Report</span>
+              Edit Profile
+            </button>
+            <button
+              onClick={() => {
+                setDeleteError('');
+                setIsConfirmingDelete(true);
+              }}
+              className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-medium rounded-md"
+            >
+              Delete Prospect
             </button>
           </div>
         </div>
@@ -329,7 +351,6 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
           { id: 'overview', label: 'Overview' },
           { id: 'statistics', label: 'Statistics' },
           { id: 'scouting', label: `Scouting & Grades (${playerReports.length})` },
-          { id: 'gamelog', label: `Game Log (${playerGameLogs.length})` },
           { id: 'video', label: `Video Film (${playerVideos.length})` },
           { id: 'history', label: `Notes & History (${playerNotes.length})` },
         ].map((tab) => (
@@ -829,119 +850,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
         </div>
       )}
 
-      {/* TAB 4: GAME LOG */}
-      {activeTab === 'gamelog' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-              Scouted Match Logs ({playerGameLogs.length})
-            </h3>
-            <button
-              onClick={() => setIsAddingGame((open) => !open)}
-              className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold rounded-md text-xs"
-            >
-              {isAddingGame ? 'Cancel' : 'Log Game'}
-            </button>
-          </div>
-
-          {isAddingGame && (
-            <form
-              className="bg-[#111827] border border-amber-500/30 rounded-lg p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const form = new FormData(e.currentTarget);
-                const homeTeam = String(form.get('homeTeam') || '').trim();
-                const awayTeam = String(form.get('awayTeam') || '').trim();
-                if (!homeTeam || !awayTeam) return;
-                const optionalNumber = (name: string) => {
-                  const raw = String(form.get(name) || '').trim();
-                  return raw === '' ? undefined : Number(raw);
-                };
-                addGameLog({
-                  prospectId: p.id,
-                  gameDate: String(form.get('gameDate') || ''),
-                  competition: String(form.get('competition') || 'NCAA D1'),
-                  homeTeam,
-                  awayTeam,
-                  score: String(form.get('score') || '').trim(),
-                  minutesWatched: optionalNumber('minutesWatched') || 0,
-                  pts: optionalNumber('pts'),
-                  reb: optionalNumber('reb'),
-                  ast: optionalNumber('ast'),
-                  replayUrl: String(form.get('replayUrl') || '').trim() || undefined,
-                  observations: String(form.get('observations') || '').trim(),
-                });
-                setIsAddingGame(false);
-                e.currentTarget.reset();
-              }}
-            >
-              <input name="gameDate" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
-              <input name="competition" placeholder="Competition" defaultValue={p.currentLeague} className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
-              <input name="homeTeam" required placeholder="Home team" className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
-              <input name="awayTeam" required placeholder="Away team" className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
-              <input name="score" placeholder="Final score" className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
-              <input name="minutesWatched" type="number" min="0" placeholder="Minutes watched" className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
-              <input name="pts" type="number" step="0.1" placeholder="PTS (optional)" className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
-              <input name="reb" type="number" step="0.1" placeholder="REB (optional)" className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
-              <input name="ast" type="number" step="0.1" placeholder="AST (optional)" className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
-              <input name="replayUrl" placeholder="Replay link" className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
-              <textarea name="observations" placeholder="Personal observations" className="sm:col-span-2 bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white min-h-20" />
-              <button type="submit" className="sm:col-span-2 px-3 py-2 bg-amber-500 text-slate-950 font-semibold rounded-md">Save game log</button>
-            </form>
-          )}
-
-          {playerGameLogs.length === 0 ? (
-            <div className="p-8 text-center text-slate-400 bg-[#111827] border border-[#1E293B] rounded-lg">
-              No individual game logs scouted for this player yet.
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {playerGameLogs.map((log) => (
-                <div key={log.id} className="bg-[#111827] border border-[#1E293B] rounded-lg p-5 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#1E293B] pb-3">
-                    <div>
-                      <div className="text-xs font-bold text-white">
-                        {log.homeTeam} vs {log.awayTeam} · <span className="font-mono text-amber-400">{log.score}</span>
-                      </div>
-                      <div className="text-[11px] text-slate-400 mt-0.5">
-                        {log.competition} · {log.gameDate} · {log.minutesWatched} mins watched
-                      </div>
-                    </div>
-                    {log.replayUrl && (
-                      <a
-                        href={log.replayUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs text-sky-400 hover:text-sky-300 flex items-center gap-1"
-                      >
-                        <span>Replay Stream</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    )}
-                  </div>
-
-                  {log.pts !== undefined && (
-                    <div className="flex items-center gap-4 text-xs font-mono tabular-nums text-slate-200">
-                      <span><strong>{log.pts}</strong> PTS</span>
-                      <span><strong>{log.reb}</strong> REB</span>
-                      <span><strong>{log.ast}</strong> AST</span>
-                      <span><strong>{log.stl}</strong> STL</span>
-                      <span><strong>{log.blk}</strong> BLK</span>
-                      <span><strong>{log.fg}</strong> FG</span>
-                    </div>
-                  )}
-
-                  <p className="text-xs text-slate-300 leading-relaxed bg-[#131B2C] p-3 rounded border border-[#1E283F]">
-                    {log.observations}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* TAB 5: VIDEO FILM & TIMESTAMPS */}
+      {/* TAB 4: VIDEO FILM & TIMESTAMPS */}
       {activeTab === 'video' && (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
@@ -1343,6 +1252,37 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      <EditProspectModal prospect={isEditingProfile ? p : null} onClose={() => setIsEditingProfile(false)} />
+
+      {isConfirmingDelete && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#101726] border border-[#233352] rounded-xl max-w-sm w-full p-6 space-y-4">
+            <h2 className="text-sm font-bold text-white">Supprimer définitivement ce joueur ?</h2>
+            <p className="text-xs text-slate-400">
+              {p.firstName} {p.lastName} et les données associées seront retirés de la base.
+            </p>
+            {deleteError && <p className="text-xs text-rose-300">{deleteError}</p>}
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setIsConfirmingDelete(false)}
+                className="px-3 py-2 text-xs text-slate-300"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                className="px-3 py-2 bg-rose-500 text-white font-semibold rounded-md text-xs disabled:opacity-60"
+              >
+                {isDeleting ? 'Suppression…' : 'Supprimer'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

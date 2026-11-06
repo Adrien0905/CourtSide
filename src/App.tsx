@@ -14,7 +14,6 @@ import { PlayerDossierView } from './components/dossier/PlayerDossierView';
 import { ScoutingReportsView } from './components/reports/ScoutingReportsView';
 import { DraftBoardView } from './components/draftboard/DraftBoardView';
 import { PlayerComparisonView } from './components/comparison/PlayerComparisonView';
-import { GameLogView } from './components/gamelog/GameLogView';
 import { VideoLibraryView } from './components/video/VideoLibraryView';
 import { SettingsView } from './components/settings/SettingsView';
 import { NewProspectModal } from './components/prospects/NewProspectModal';
@@ -45,10 +44,7 @@ const AppContent: React.FC = () => {
     switch (activeView) {
       case 'dashboard':
         return (
-          <DashboardView
-            onOpenNewProspectModal={() => setIsProspectModalOpen(true)}
-            onOpenNewReportModal={openNewReport}
-          />
+          <DashboardView />
         );
       case 'database':
         return (
@@ -74,18 +70,13 @@ const AppContent: React.FC = () => {
         return <DraftBoardView />;
       case 'comparison':
         return <PlayerComparisonView />;
-      case 'gamelog':
-        return <GameLogView />;
       case 'video':
         return <VideoLibraryView />;
       case 'settings':
         return <SettingsView />;
       default:
         return (
-          <DashboardView
-            onOpenNewProspectModal={() => setIsProspectModalOpen(true)}
-            onOpenNewReportModal={openNewReport}
-          />
+          <DashboardView />
         );
     }
   };
@@ -95,12 +86,11 @@ const AppContent: React.FC = () => {
       {/* Desktop Permanent Sidebar */}
       <Sidebar
         onOpenNewProspectModal={() => setIsProspectModalOpen(true)}
-        onOpenNewReportModal={openNewReport}
       />
 
       {/* Main Viewport */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden min-w-0">
-        <TopHeader onOpenNewProspectModal={() => setIsProspectModalOpen(true)} />
+        <TopHeader />
 
         <main className="flex-1 overflow-y-auto bg-[#0B0F17]">
           {renderActiveView()}

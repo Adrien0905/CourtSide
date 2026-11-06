@@ -1,19 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import {
   Search,
-  Filter,
   ArrowUpDown,
   Plus,
-  Eye,
   SlidersHorizontal,
   ChevronDown,
-  Check,
-  Trophy,
-  Star
 } from 'lucide-react';
 import { useScouting } from '../../context/ScoutingContext';
 import { Position, ProspectStatus, LeagueCategory } from '../../types/scouting';
 import { DataSyncPanel } from '../settings/DataSyncPanel';
+import { PlayerAvatar } from '../common/PlayerAvatar';
 
 interface PlayerDatabaseViewProps {
   onOpenNewProspectModal: () => void;
@@ -41,9 +37,8 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
   const [selectedLeague, setSelectedLeague] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [gradeRange, setGradeRange] = useState<'ALL' | 'ELITE' | 'ABOVE' | 'MID' | 'UNRATED'>('ALL');
-  const [sortField, setSortField] = useState<SortField>('grade');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [isCompact, setIsCompact] = useState(false);
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   // Column visibility
   const [showWingspan, setShowWingspan] = useState(true);
@@ -209,14 +204,6 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2.5">
-          {/* Density toggle */}
-          <button
-            onClick={() => setIsCompact(!isCompact)}
-            className="px-2.5 py-1.5 rounded bg-[#131B2C] border border-[#22314E] text-xs font-medium text-slate-300 hover:text-white transition-colors"
-          >
-            {isCompact ? 'Standard Density' : 'Compact Rows'}
-          </button>
-
           {/* Columns dropdown */}
           <div className="relative">
             <button
@@ -269,14 +256,6 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
               </div>
             )}
           </div>
-
-          <button
-            onClick={onOpenNewProspectModal}
-            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs rounded-md transition-colors flex items-center gap-1.5 shadow-sm"
-          >
-            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>Add Prospect</span>
-          </button>
         </div>
       </div>
 
@@ -435,17 +414,11 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
                 {showStats && (
                   <th
                     onClick={() => handleSort('ppg')}
-                    className="py-3 px-3 cursor-pointer hover:text-amber-400 transition-colors font-mono text-right"
+                    className="py-3 px-4 min-w-[19rem] cursor-pointer hover:text-amber-400 transition-colors font-mono text-center"
                   >
                     PPG / RPG / APG
                   </th>
                 )}
-                <th
-                  onClick={() => handleSort('grade')}
-                  className="py-3 px-3 cursor-pointer hover:text-amber-400 transition-colors font-mono text-center"
-                >
-                  Scout Grade
-                </th>
                 <th
                   onClick={() => handleSort('status')}
                   className="py-3 px-3 cursor-pointer hover:text-amber-400 transition-colors text-center"
@@ -453,13 +426,12 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
                   Status
                 </th>
                 {showTags && <th className="py-3 px-4">Tags</th>}
-                <th className="py-3 px-3 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#182338]">
               {filteredProspects.length === 0 ? (
                 <tr>
-                  <td colSpan={13} className="py-12 text-center text-slate-400">
+                  <td colSpan={7 + Number(showWingspan) + Number(showAge) + Number(showStats) + Number(showTags)} className="py-12 text-center text-slate-400">
                     <p className="text-sm font-medium">No prospects found</p>
                     <p className="text-xs text-slate-400 mt-1">
                       Adjust your filters or add a new prospect to your database.
@@ -477,15 +449,12 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
                 filteredProspects.map((p) => {
                   const isCompared = comparisonProspectIds.includes(p.id);
                   const stat = p.stats[0];
-                  const grade = p.latestReport?.overallGrade;
 
                   return (
                     <tr
                       key={p.id}
                       onClick={() => handleRowClick(p.id)}
-                      className={`hover:bg-[#141D30] transition-colors cursor-pointer group ${
-                        isCompact ? 'py-1.5' : 'py-3'
-                      }`}
+                      className="hover:bg-[#141D30] transition-colors cursor-pointer group"
                     >
                       {/* Compare Checkbox */}
                       <td
@@ -505,11 +474,20 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
 
                       {/* Name & Draft Year */}
                       <td className="py-2.5 px-4">
-                        <div className="font-bold text-white group-hover:text-amber-400 transition-colors">
-                          {p.firstName} {p.lastName}
-                        </div>
-                        <div className="text-[10px] text-slate-400 font-mono">
-                          Class of {p.draftYear} · {p.nationality}
+                        <div className="flex items-center gap-2.5">
+                          <PlayerAvatar
+                            firstName={p.firstName}
+                            lastName={p.lastName}
+                            avatarUrl={p.avatarUrl}
+                          />
+                          <div>
+                            <div className="font-bold text-white group-hover:text-amber-400 transition-colors">
+                              {p.firstName} {p.lastName}
+                            </div>
+                            <div className="text-[10px] text-slate-400 font-mono">
+                              Class of {p.draftYear} · {p.nationality}
+                            </div>
+                          </div>
                         </div>
                       </td>
 
@@ -551,31 +529,22 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
 
                       {/* Stats */}
                       {showStats && (
-                        <td className="py-2.5 px-3 font-mono text-right tabular-nums text-slate-200">
+                        <td className="py-2.5 px-4 min-w-[19rem] font-mono tabular-nums text-slate-200">
                           {stat ? (
-                            <span>
-                              <strong className="text-white">{stat.ppg == null ? '—' : stat.ppg.toFixed(1)}</strong> / {stat.rpg == null ? '—' : stat.rpg.toFixed(1)} / {stat.apg == null ? '—' : stat.apg.toFixed(1)}
+                            <span className="grid grid-cols-3 gap-x-4 whitespace-nowrap text-center">
+                              <span><strong className="text-white">{stat.ppg == null ? '—' : stat.ppg.toFixed(1)}</strong> <span className="text-[10px] text-slate-500">PPG</span></span>
+                              <span><strong className="text-white">{stat.rpg == null ? '—' : stat.rpg.toFixed(1)}</strong> <span className="text-[10px] text-slate-500">RPG</span></span>
+                              <span><strong className="text-white">{stat.apg == null ? '—' : stat.apg.toFixed(1)}</strong> <span className="text-[10px] text-slate-500">APG</span></span>
                             </span>
                           ) : (
-                            <span className="text-slate-400">—</span>
+                            <span className="block text-right text-slate-400">—</span>
                           )}
                         </td>
                       )}
 
-                      {/* Grade */}
-                      <td className="py-2.5 px-3 text-center">
-                        {grade !== undefined ? (
-                          <span className="font-mono font-bold text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                            {grade.toFixed(1)}
-                          </span>
-                        ) : (
-                          <span className="text-[11px] text-slate-400 font-mono">Unrated</span>
-                        )}
-                      </td>
-
                       {/* Status */}
-                      <td className="py-2.5 px-3 text-center">
-                        <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-[#182337] text-slate-300 border border-[#253450]">
+                      <td className="py-2.5 px-3 text-center whitespace-nowrap">
+                        <span className="inline-flex items-center justify-center whitespace-nowrap min-w-[7.5rem] text-[10px] font-medium px-3 py-1 rounded bg-[#182337] text-slate-300 border border-[#253450]">
                           {p.status}
                         </span>
                       </td>
@@ -600,20 +569,6 @@ export const PlayerDatabaseView: React.FC<PlayerDatabaseViewProps> = ({
                           </div>
                         </td>
                       )}
-
-                      {/* Action */}
-                      <td className="py-2.5 px-3 text-right">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRowClick(p.id);
-                          }}
-                          className="p-1 rounded hover:bg-[#1E293B] text-slate-400 hover:text-amber-400 transition-colors"
-                          title="Open Dossier"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                      </td>
                     </tr>
                   );
                 })
