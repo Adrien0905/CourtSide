@@ -3,7 +3,11 @@ import { ExternalLink } from 'lucide-react';
 import { VideoTimestamp } from '../../types/scouting';
 import {
   collectClipMarkers,
+  evaluateLoopTick,
   extractYouTubeId,
+  formatClock,
+  loopWindow,
+  LoopWindow,
   splitTimestampTokens,
   summaryDescription,
   youtubeWatchUrl,
@@ -12,6 +16,7 @@ import {
 interface YouTubePlayer {
   seekTo: (seconds: number, allowSeekAhead: boolean) => void;
   playVideo: () => void;
+  getCurrentTime: () => number;
   destroy: () => void;
 }
 
@@ -103,9 +108,17 @@ export const FilmSequencePlayer: React.FC<FilmSequencePlayerProps> = ({
   const hostRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<YouTubePlayer | null>(null);
   const pendingSeek = useRef<number | null>(null);
+  const loopRef = useRef<LoopWindow | null>(null);
+  const loopArmedRef = useRef(false);
+  const loopGraceUntilRef = useRef(0);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [playerReady, setPlayerReady] = useState(false);
   const [playerError, setPlayerError] = useState(false);
+  const [loop, setLoop] = useState<LoopWindow | null>(null);
+
+  useEffect(() => {
+    loopRef.current = loop;
+  }, [loop]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -164,12 +177,60 @@ export const FilmSequencePlayer: React.FC<FilmSequencePlayerProps> = ({
     };
   }, [videoId]);
 
+  useEffect(() => {
+    if (!playerReady) return;
+    const timer = window.setInterval(() => {
+      const player = playerRef.current;
+      const activeLoop = loopRef.current;
+      if (!player || !activeLoop) return;
+      let current = 0;
+      try {
+        current = player.getCurrentTime();
+      } catch {
+        return;
+      }
+      if (!Number.isFinite(current)) return;
+      const decision = evaluateLoopTick(current, activeLoop, loopArmedRef.current);
+      if (decision === 'wait' && Date.now() < loopGraceUntilRef.current && !loopArmedRef.current) return;
+      if (decision === 'arm') {
+        loopArmedRef.current = true;
+        return;
+      }
+      if (decision === 'restart') {
+        loopArmedRef.current = false;
+        loopGraceUntilRef.current = Date.now() + 1200;
+        player.seekTo(activeLoop.start, true);
+        player.playVideo();
+        return;
+      }
+      if (decision === 'release' && Date.now() >= loopGraceUntilRef.current) {
+        loopArmedRef.current = false;
+        setLoop(null);
+      }
+    }, 200);
+    return () => window.clearInterval(timer);
+  }, [playerReady]);
+
+  const beginLoop = (seconds: number) => {
+    const next = loopWindow(seconds);
+    loopArmedRef.current = false;
+    loopGraceUntilRef.current = Date.now() + 2500;
+    setLoop(next);
+    return next;
+  };
+
+  const playFullVideo = () => {
+    loopArmedRef.current = false;
+    setLoop(null);
+  };
+
   const seekTo = (seconds: number, index?: number) => {
     if (index != null) setActiveIndex(index);
     if (!videoId) {
       window.open(videoUrl, '_blank', 'noopener,noreferrer');
       return;
     }
+    beginLoop(seconds);
     const player = playerRef.current;
     if (player && playerReady) {
       player.seekTo(seconds, true);
@@ -182,8 +243,24 @@ export const FilmSequencePlayer: React.FC<FilmSequencePlayerProps> = ({
   return (
     <div className="space-y-3">
       {videoId && !playerError ? (
-        <div className="relative aspect-video overflow-hidden rounded-lg border border-[#1E293B] bg-black">
-          <div ref={hostRef} className="h-full w-full [&_iframe]:h-full [&_iframe]:w-full" />
+        <div className="overflow-hidden rounded-lg border border-[#1E293B] bg-black">
+          <div className="relative aspect-video">
+            <div ref={hostRef} className="h-full w-full [&_iframe]:h-full [&_iframe]:w-full" />
+          </div>
+          {loop && (
+            <div className="flex items-center justify-between gap-3 border-t border-amber-400/30 bg-amber-500/10 px-3 py-2 text-sm">
+              <span className="font-semibold text-amber-300">
+                Loop Mode (6s active) · {formatClock(loop.start)}–{formatClock(loop.end)}
+              </span>
+              <button
+                type="button"
+                onClick={playFullVideo}
+                className="shrink-0 rounded bg-[#182337] px-2.5 py-1 font-semibold text-slate-100 border border-[#314463] hover:bg-[#1E2B47]"
+              >
+                Play Full Video
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="rounded-lg border border-[#1E293B] bg-[#0C1220] px-4 py-5 text-sm text-slate-300">
@@ -229,7 +306,7 @@ export const FilmSequencePlayer: React.FC<FilmSequencePlayerProps> = ({
                     className="font-mono font-bold text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded border border-amber-400/20 hover:bg-amber-400/20 shrink-0"
                     title={
                       videoId
-                        ? `Lire à ${marker.label}`
+                        ? `Boucler ${marker.label} pendant 6 secondes`
                         : 'Ouvrir la vidéo'
                     }
                   >

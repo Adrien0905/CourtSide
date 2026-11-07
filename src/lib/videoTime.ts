@@ -123,6 +123,32 @@ export function groupVideoClips(clips: VideoClip[]): GroupedVideoClip[] {
   return order.map((key) => groups.get(key)!);
 }
 
+export const LOOP_WINDOW_SECONDS = 6;
+
+export interface LoopWindow {
+  start: number;
+  end: number;
+}
+
+export function loopWindow(startTime: number, seconds = LOOP_WINDOW_SECONDS): LoopWindow {
+  const start = Math.max(0, startTime);
+  return { start, end: start + seconds };
+}
+
+export type LoopTick = 'wait' | 'arm' | 'restart' | 'release';
+
+export function evaluateLoopTick(currentTime: number, loop: LoopWindow, armed: boolean): LoopTick {
+  const inside = currentTime >= loop.start - 0.35 && currentTime < loop.end;
+  if (!armed) {
+    if (inside) return 'arm';
+    const outside = currentTime < loop.start - 1 || currentTime > loop.end + 1.25;
+    return outside ? 'release' : 'wait';
+  }
+  if (currentTime >= loop.end - 0.12 && currentTime <= loop.end + 1.25) return 'restart';
+  if (currentTime < loop.start - 1 || currentTime > loop.end + 1.25) return 'release';
+  return 'wait';
+}
+
 export function formatClock(totalSeconds: number): string {
   const safe = Math.max(0, Math.floor(totalSeconds));
   const hours = Math.floor(safe / 3600);
