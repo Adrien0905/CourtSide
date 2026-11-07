@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { X, FileSpreadsheet, ChevronDown, ChevronUp, Sliders, Check, HelpCircle } from 'lucide-react';
 import { useScouting } from '../../context/ScoutingContext';
 import { CONFIDENCE_OPTIONS, ConfidenceLevel, ScoutingReport } from '../../types/scouting';
+import { emptyScoutingSkills, SCOUTING_SKILL_COUNT, SCOUTING_SKILL_GROUPS } from '../../lib/scoutingSkills';
 
 interface NewReportModalProps {
   isOpen: boolean;
@@ -9,26 +10,7 @@ interface NewReportModalProps {
   initialReport?: ScoutingReport | null;
 }
 
-const EMPTY_SUB_SKILLS: { [key: string]: number | null } = {
-  size: null,
-  mobility: null,
-  explosiveness: null,
-  strength: null,
-  shooting: null,
-  threePointShooting: null,
-  finishing: null,
-  rimPressure: null,
-  passing: null,
-  ballHandling: null,
-  pointOfAttackDefense: null,
-  perimeterDefense: null,
-  rimProtection: null,
-  switchability: null,
-  courtVision: null,
-  decisionMakingGeneral: null,
-  competitiveness: null,
-  motor: null,
-};
+const EMPTY_SUB_SKILLS: { [key: string]: number | null } = emptyScoutingSkills();
 
 export const NewReportModal: React.FC<NewReportModalProps> = ({ isOpen, onClose, initialReport = null }) => {
   const {
@@ -569,7 +551,7 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({ isOpen, onClose,
               <div className="flex items-center gap-2">
                 <Sliders className="w-3.5 h-3.5 text-amber-400" />
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
-                  Optional Sub-Skills Breakdown (18 Traits)
+                  Optional Sub-Skills Breakdown ({SCOUTING_SKILL_COUNT} Traits)
                 </span>
               </div>
               <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono">
@@ -585,111 +567,36 @@ export const NewReportModal: React.FC<NewReportModalProps> = ({ isOpen, onClose,
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {/* Physical Traits */}
-                  <div className="space-y-2.5 bg-[#121B2C] p-3 rounded border border-[#1F2C46]">
-                    <div className="text-[10px] uppercase font-bold text-amber-400">Physical & Athletic</div>
-                    {[
-                      { key: 'size', label: 'Size & Frame' },
-                      { key: 'mobility', label: 'Lateral Mobility' },
-                      { key: 'explosiveness', label: 'Explosiveness' },
-                      { key: 'strength', label: 'Functional Strength' },
-                    ].map((trait) => (
-                      <div key={trait.key} className="space-y-1">
-                        <div className="flex justify-between items-center text-[10px]">
-                          <span className="text-slate-300">{trait.label}</span>
-                          <span className="font-mono text-amber-400 font-bold">
-                            {subSkills[trait.key] ? `${subSkills[trait.key]?.toFixed(1)}` : 'Unrated'}
-                          </span>
+                  {SCOUTING_SKILL_GROUPS.map((group) => (
+                    <div key={group.title} className="space-y-2.5 bg-[#121B2C] p-3 rounded border border-[#1F2C46]">
+                      <div className={`text-[10px] uppercase font-bold ${group.titleClass}`}>{group.title}</div>
+                      {group.skills.map((trait) => (
+                        <div key={trait.key} className="space-y-1">
+                          <div className="flex justify-between items-center text-[10px]">
+                            <span className="text-slate-300">{trait.label}</span>
+                            <span className="font-mono text-amber-400 font-bold">
+                              {subSkills[trait.key] ? `${subSkills[trait.key]?.toFixed(1)}` : 'Unrated'}
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="0"
+                            max="10"
+                            step="0.5"
+                            aria-label={trait.label}
+                            value={subSkills[trait.key] || 0}
+                            onChange={(e) =>
+                              handleSubSkillChange(
+                                trait.key,
+                                Number(e.target.value) === 0 ? null : Number(e.target.value)
+                              )
+                            }
+                            className="w-full accent-amber-500 cursor-pointer h-1"
+                          />
                         </div>
-                        <input
-                          type="range"
-                          min="0"
-                          max="10"
-                          step="0.5"
-                          value={subSkills[trait.key] || 0}
-                          onChange={(e) =>
-                            handleSubSkillChange(
-                              trait.key,
-                              Number(e.target.value) === 0 ? null : Number(e.target.value)
-                            )
-                          }
-                          className="w-full accent-amber-500 cursor-pointer h-1"
-                        />
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Offensive Traits */}
-                  <div className="space-y-2.5 bg-[#121B2C] p-3 rounded border border-[#1F2C46]">
-                    <div className="text-[10px] uppercase font-bold text-amber-400">Offensive Traits</div>
-                    {[
-                      { key: 'shooting', label: 'Shooting Touch' },
-                      { key: 'threePointShooting', label: '3PT Range & Volume' },
-                      { key: 'finishing', label: 'Finishing at Rim' },
-                      { key: 'rimPressure', label: 'Rim Pressure' },
-                      { key: 'passing', label: 'Passing Delivery' },
-                      { key: 'ballHandling', label: 'Handle in Traffic' },
-                    ].map((trait) => (
-                      <div key={trait.key} className="space-y-1">
-                        <div className="flex justify-between items-center text-[10px]">
-                          <span className="text-slate-300">{trait.label}</span>
-                          <span className="font-mono text-amber-400 font-bold">
-                            {subSkills[trait.key] ? `${subSkills[trait.key]?.toFixed(1)}` : 'Unrated'}
-                          </span>
-                        </div>
-                        <input
-                          type="range"
-                          min="0"
-                          max="10"
-                          step="0.5"
-                          value={subSkills[trait.key] || 0}
-                          onChange={(e) =>
-                            handleSubSkillChange(
-                              trait.key,
-                              Number(e.target.value) === 0 ? null : Number(e.target.value)
-                            )
-                          }
-                          className="w-full accent-amber-500 cursor-pointer h-1"
-                        />
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Defense & IQ Traits */}
-                  <div className="space-y-2.5 bg-[#121B2C] p-3 rounded border border-[#1F2C46]">
-                    <div className="text-[10px] uppercase font-bold text-amber-400">Defense, IQ & Motor</div>
-                    {[
-                      { key: 'pointOfAttackDefense', label: 'Point-of-Attack' },
-                      { key: 'perimeterDefense', label: 'Perimeter Defense' },
-                      { key: 'rimProtection', label: 'Rim Protection' },
-                      { key: 'courtVision', label: 'Court Vision' },
-                      { key: 'decisionMakingGeneral', label: 'Decision Making' },
-                      { key: 'motor', label: 'Defensive Motor' },
-                    ].map((trait) => (
-                      <div key={trait.key} className="space-y-1">
-                        <div className="flex justify-between items-center text-[10px]">
-                          <span className="text-slate-300">{trait.label}</span>
-                          <span className="font-mono text-amber-400 font-bold">
-                            {subSkills[trait.key] ? `${subSkills[trait.key]?.toFixed(1)}` : 'Unrated'}
-                          </span>
-                        </div>
-                        <input
-                          type="range"
-                          min="0"
-                          max="10"
-                          step="0.5"
-                          value={subSkills[trait.key] || 0}
-                          onChange={(e) =>
-                            handleSubSkillChange(
-                              trait.key,
-                              Number(e.target.value) === 0 ? null : Number(e.target.value)
-                            )
-                          }
-                          className="w-full accent-amber-500 cursor-pointer h-1"
-                        />
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

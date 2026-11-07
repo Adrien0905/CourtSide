@@ -1,7 +1,16 @@
 import { VideoClip, VideoTimestamp } from '../types/scouting';
 
 const CLOCK = /^(?:(\d{1,2}):)?(\d{1,2}):(\d{2})$/;
+const CLOCK_BODY = '(?:\\d{1,2}:)?\\d{1,2}:\\d{2}';
 const INLINE_CLOCK = /(?<![\d:])(?:(\d{1,2}):)?(\d{1,2}):(\d{2})(?!:\d)/g;
+const INLINE_RANGE_OR_CLOCK = new RegExp(
+  `(?<![\\d:])(?:(${CLOCK_BODY})\\s*[-–—]\\s*(${CLOCK_BODY})|(${CLOCK_BODY}))(?!:\\d)`,
+  'g'
+);
+const RANGE_LINE = new RegExp(`^(${CLOCK_BODY})\\s*[-–—]\\s*(${CLOCK_BODY})$`);
+const RANGE_NOTE = new RegExp(
+  `^\\s*(${CLOCK_BODY})\\s*[-–—]\\s*(${CLOCK_BODY})\\s*(?:[-–—:]|\\s)\\s*(.+)$`
+);
 const NOTE_LINE = /^\s*((?:\d{1,2}:)?\d{1,2}:\d{2})\s*(?:[-–—:]|\s)\s*(.+)$/;
 
 export function parseTimeToSeconds(timeStr: string): number | null {
@@ -27,10 +36,56 @@ export function resolveSeconds(marker: { seconds?: number; label?: string }): nu
   return Number.isFinite(seconds) && seconds >= 0 ? seconds : 0;
 }
 
+export function parseTimeRange(timeStr: string): { start: number; end: number } | null {
+  const match = timeStr.trim().match(RANGE_LINE);
+  if (!match) return null;
+  const start = parseTimeToSeconds(match[1]);
+  const end = parseTimeToSeconds(match[2]);
+  if (start == null || end == null || end <= start) return null;
+  return { start, end };
+}
+
+export function formatRangeLabel(start: number, end?: number | null): string {
+  if (end != null && end > start) return `${formatClock(start)} - ${formatClock(end)}`;
+  return formatClock(start);
+}
+
+export function createTimestamp(startRaw: string, endRaw: string, note: string): VideoTimestamp | null {
+  const noteText = note.trim();
+  const startText = startRaw.trim();
+  const endText = endRaw.trim();
+  if (!noteText || !startText) return null;
+
+  if (!endText) {
+    const range = parseTimeRange(startText);
+    if (range) {
+      return {
+        seconds: range.start,
+        endSeconds: range.end,
+        label: formatRangeLabel(range.start, range.end),
+        note: noteText,
+      };
+    }
+    const start = parseTimeToSeconds(startText);
+    if (start == null) return null;
+    return { seconds: start, label: formatClock(start), note: noteText };
+  }
+
+  const start = parseTimeToSeconds(startText);
+  const end = parseTimeToSeconds(endText);
+  if (start == null || end == null || end <= start) return null;
+  return {
+    seconds: start,
+    endSeconds: end,
+    label: formatRangeLabel(start, end),
+    note: noteText,
+  };
+}
+
 export function summaryDescription(text: string): string {
   return text
     .split(/\r?\n/)
-    .filter((line) => line.trim() && !NOTE_LINE.test(line))
+    .filter((line) => line.trim() && !RANGE_NOTE.test(line) && !NOTE_LINE.test(line))
     .join('\n')
     .trim();
 }
@@ -39,13 +94,27 @@ export function parseTimestampedNotes(text: string): VideoTimestamp[] {
   if (!text.trim()) return [];
   const markers: VideoTimestamp[] = [];
   for (const line of text.split(/\r?\n/)) {
+    const range = line.match(RANGE_NOTE);
+    if (range) {
+      const start = parseTimeToSeconds(range[1]);
+      const end = parseTimeToSeconds(range[2]);
+      const note = range[3].trim();
+      if (start == null || end == null || end <= start || !note) continue;
+      markers.push({
+        seconds: start,
+        endSeconds: end,
+        label: formatRangeLabel(start, end),
+        note,
+      });
+      continue;
+    }
     const match = line.match(NOTE_LINE);
     if (!match) continue;
     const label = match[1];
     const note = match[2].trim();
     const seconds = parseTimeToSeconds(label);
-    if (seconds == null || !note) continue;
-    markers.push({ seconds, label, note });
+    if (seconds == null || !note || parseTimeToSeconds(note) != null) continue;
+    markers.push({ seconds, label: formatClock(seconds), note });
   }
   return markers;
 }
@@ -56,25 +125,37 @@ export function collectClipMarkers(clip: {
 }): VideoTimestamp[] {
   const explicit = (clip.timestamps || [])
     .map((marker) => {
-      const label = String(marker.label || '').trim();
+      const rawLabel = String(marker.label || '').trim();
       const note = String(marker.note || marker.notes || '').trim();
-      if (!label && !note) return null;
+      if (!rawLabel && !note) return null;
+      const fromLabel = parseTimeRange(rawLabel);
+      const seconds = fromLabel?.start ?? resolveSeconds({ seconds: marker.seconds, label: rawLabel });
+      const endCandidate = Number(marker.endSeconds ?? fromLabel?.end);
+      const endSeconds = Number.isFinite(endCandidate) && endCandidate > seconds ? endCandidate : undefined;
       return {
-        seconds: resolveSeconds({ seconds: marker.seconds, label }),
-        label: label || formatClock(resolveSeconds({ seconds: marker.seconds, label })),
+        seconds,
+        ...(endSeconds != null ? { endSeconds } : {}),
+        label: formatRangeLabel(seconds, endSeconds),
         note,
       };
     })
     .filter((marker): marker is VideoTimestamp => marker != null);
 
-  const clockCount = (value: string) => [...value.matchAll(INLINE_CLOCK)].length;
-  const singles = explicit.filter((marker) => clockCount(marker.label) <= 1);
+  const clockWeight = (value: string) => {
+    if (parseTimeRange(value)) return 1;
+    INLINE_CLOCK.lastIndex = 0;
+    return [...value.matchAll(INLINE_CLOCK)].length;
+  };
+  const singles = explicit.filter((marker) => clockWeight(marker.label) <= 1);
   const kept = singles.length > 0 ? singles : explicit;
 
   const merged = [...kept];
   for (const parsed of parseTimestampedNotes(clip.description || '')) {
     const duplicate = merged.some(
-      (marker) => marker.seconds === parsed.seconds && marker.note === parsed.note
+      (marker) =>
+        marker.seconds === parsed.seconds &&
+        (marker.endSeconds ?? null) === (parsed.endSeconds ?? null) &&
+        marker.note === parsed.note
     );
     if (!duplicate) merged.push(parsed);
   }
@@ -130,22 +211,22 @@ export interface LoopWindow {
   end: number;
 }
 
-export function loopWindow(startTime: number, seconds = LOOP_WINDOW_SECONDS): LoopWindow {
+export function loopWindow(startTime: number, endTime?: number | null, seconds = LOOP_WINDOW_SECONDS): LoopWindow {
   const start = Math.max(0, startTime);
-  return { start, end: start + seconds };
+  const end = endTime != null && endTime > start ? endTime : start + seconds;
+  return { start, end };
 }
 
 export type LoopTick = 'wait' | 'arm' | 'restart' | 'release';
 
+const LOOP_EXIT_GRACE = 2.5;
+
 export function evaluateLoopTick(currentTime: number, loop: LoopWindow, armed: boolean): LoopTick {
-  const inside = currentTime >= loop.start - 0.35 && currentTime < loop.end;
-  if (!armed) {
-    if (inside) return 'arm';
-    const outside = currentTime < loop.start - 1 || currentTime > loop.end + 1.25;
-    return outside ? 'release' : 'wait';
+  if (currentTime >= loop.end) {
+    return currentTime <= loop.end + LOOP_EXIT_GRACE ? 'restart' : 'release';
   }
-  if (currentTime >= loop.end - 0.12 && currentTime <= loop.end + 1.25) return 'restart';
-  if (currentTime < loop.start - 1 || currentTime > loop.end + 1.25) return 'release';
+  if (currentTime < loop.start - 1) return 'release';
+  if (!armed && currentTime >= loop.start - 0.35) return 'arm';
   return 'wait';
 }
 
@@ -163,16 +244,28 @@ export function formatClock(totalSeconds: number): string {
 export interface TimestampToken {
   text: string;
   seconds: number | null;
+  endSeconds?: number | null;
 }
 
 export function splitTimestampTokens(text: string): TimestampToken[] {
   const parts: TimestampToken[] = [];
   let last = 0;
-  for (const match of text.matchAll(INLINE_CLOCK)) {
+  INLINE_RANGE_OR_CLOCK.lastIndex = 0;
+  for (const match of text.matchAll(INLINE_RANGE_OR_CLOCK)) {
     const index = match.index ?? 0;
     if (index > last) parts.push({ text: text.slice(last, index), seconds: null });
     const token = match[0];
-    parts.push({ text: token, seconds: parseTimeToSeconds(token) });
+    if (match[1] && match[2]) {
+      const start = parseTimeToSeconds(match[1]);
+      const end = parseTimeToSeconds(match[2]);
+      parts.push({
+        text: token,
+        seconds: start,
+        endSeconds: start != null && end != null && end > start ? end : null,
+      });
+    } else {
+      parts.push({ text: token, seconds: parseTimeToSeconds(match[3] || token) });
+    }
     last = index + token.length;
   }
   if (last < text.length) parts.push({ text: text.slice(last), seconds: null });

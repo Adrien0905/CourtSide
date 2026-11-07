@@ -43,7 +43,8 @@ import { PlayerAvatar } from '../common/PlayerAvatar';
 import { FilmSequencePlayer } from '../video/FilmSequencePlayer';
 import { EditProspectModal } from '../prospects/EditProspectModal';
 import { VideoClipEditor } from '../video/VideoClipEditor';
-import { collectClipMarkers, groupVideoClips, parseTimeToSeconds } from '../../lib/videoTime';
+import { collectClipMarkers, createTimestamp, groupVideoClips } from '../../lib/videoTime';
+import { ScoutingReportCard } from '../reports/ScoutingReportCard';
 import { ProspectStatus, ScoutingReport, confidenceLabel } from '../../types/scouting';
 
 interface PlayerDossierViewProps {
@@ -769,79 +770,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                   </div>
                 </div>
 
-                {/* Sub-skill Grids */}
-                {rep.detailedGrades && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
-                    {/* Physical & Athleticism */}
-                    <div className="p-4 rounded bg-[#131C2E] border border-[#202E49] space-y-2">
-                      <h5 className="font-bold uppercase tracking-wider text-amber-400 text-sm mb-2">
-                        Physical Tools & Athleticism
-                      </h5>
-                      <div className="space-y-1.5">
-                        {[
-                          { name: 'Size & Frame', val: rep.detailedGrades.size },
-                          { name: 'Wingspan & Length', val: rep.detailedGrades.wingspan },
-                          { name: 'Functional Mobility', val: rep.detailedGrades.mobility },
-                          { name: 'Strength & Balance', val: rep.detailedGrades.strength },
-                          { name: 'Explosiveness', val: rep.detailedGrades.explosiveness },
-                        ].map((item) => (
-                          <div key={item.name} className="flex justify-between items-center text-slate-300">
-                            <span>{item.name}</span>
-                            <span className="font-mono font-bold text-amber-300">
-                              {item.val && item.val > 0 ? item.val : '—'}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Offensive Skills */}
-                    <div className="p-4 rounded bg-[#131C2E] border border-[#202E49] space-y-2">
-                      <h5 className="font-bold uppercase tracking-wider text-sky-400 text-sm mb-2">
-                        Offensive Skillset
-                      </h5>
-                      <div className="space-y-1.5">
-                        {[
-                          { name: '3-Point Shooting', val: rep.detailedGrades.threePointShooting },
-                          { name: 'Rim Finishing', val: rep.detailedGrades.finishing },
-                          { name: 'Shot Creation', val: rep.detailedGrades.shotCreation },
-                          { name: 'Passing & Playmaking', val: rep.detailedGrades.passing },
-                          { name: 'Decision Making', val: rep.detailedGrades.decisionMakingOffense },
-                        ].map((item) => (
-                          <div key={item.name} className="flex justify-between items-center text-slate-300">
-                            <span>{item.name}</span>
-                            <span className="font-mono font-bold text-sky-300">
-                              {item.val && item.val > 0 ? item.val : '—'}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Defense & Basketball IQ */}
-                    <div className="p-4 rounded bg-[#131C2E] border border-[#202E49] space-y-2">
-                      <h5 className="font-bold uppercase tracking-wider text-emerald-400 text-sm mb-2">
-                        Defense & Basketball IQ
-                      </h5>
-                      <div className="space-y-1.5">
-                        {[
-                          { name: 'Point of Attack Defense', val: rep.detailedGrades.pointOfAttackDefense },
-                          { name: 'Rim Protection & Help', val: rep.detailedGrades.rimProtection },
-                          { name: 'Court Vision', val: rep.detailedGrades.courtVision },
-                          { name: 'Pick & Roll Reading', val: rep.detailedGrades.readingPickAndRoll },
-                          { name: 'Competitive Motor', val: rep.detailedGrades.competitiveness },
-                        ].map((item) => (
-                          <div key={item.name} className="flex justify-between items-center text-slate-300">
-                            <span>{item.name}</span>
-                            <span className="font-mono font-bold text-emerald-300">
-                              {item.val && item.val > 0 ? item.val : '—'}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <ScoutingReportCard grades={rep.detailedGrades} />
 
                 {/* Written Summary */}
                 <div className="text-sm text-slate-300 leading-relaxed bg-[#131B2B] p-4 rounded border border-[#1F2C45]">
@@ -877,12 +806,12 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                 const title = String(form.get('title') || '').trim();
                 const videoUrl = String(form.get('videoUrl') || '').trim();
                 if (!title || !videoUrl) return;
-                const label = String(form.get('timestampLabel') || '').trim();
+                const start = String(form.get('timestampStart') || '').trim();
+                const end = String(form.get('timestampEnd') || '').trim();
                 const note = String(form.get('timestampNote') || '').trim();
                 const description = String(form.get('description') || '').trim();
-                const explicit = label && note
-                  ? [{ seconds: parseTimeToSeconds(label) ?? 0, label, note }]
-                  : [];
+                const stamp = createTimestamp(start, end, note);
+                const explicit = stamp ? [stamp] : [];
                 const timestamps = collectClipMarkers({ timestamps: explicit, description });
                 addVideoClip({
                   prospectId: p.id,
@@ -902,10 +831,11 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
             >
               <input name="title" required placeholder="Clip title" className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
               <input name="videoUrl" required placeholder="YouTube or video URL" className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
-              <textarea name="description" rows={3} placeholder={'Description\n00:34 – lecture du pick-and-roll\n01:20 – rotation défensive'} className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
+              <textarea name="description" rows={3} placeholder={'Description\n01:30 - 01:42 – lecture du pick-and-roll'} className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
               <input name="tags" placeholder="Tags, comma separated" className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <input name="timestampLabel" placeholder="Timestamp (00:34)" className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <input name="timestampStart" aria-label="Start Time" placeholder="Start Time (01:30)" className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
+                <input name="timestampEnd" aria-label="End Time" placeholder="End Time (01:42)" className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
                 <input name="timestampNote" placeholder="Note at that moment" className="bg-[#141C2E] border border-[#23314D] rounded px-3 py-2 text-white" />
               </div>
               <button type="submit" className="px-3 py-2 bg-amber-500 text-slate-950 font-semibold rounded-md">Save video</button>

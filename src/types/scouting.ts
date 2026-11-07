@@ -225,7 +225,8 @@ export interface GameLogItem {
 
 export interface VideoTimestamp {
   seconds: number;
-  label: string; // "02:15"
+  endSeconds?: number;
+  label: string; // "02:15" or "01:30 - 01:42"
   note: string; // "Sharp cut back-door finish with left hand"
 }
 

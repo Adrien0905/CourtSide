@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { VideoTimestamp } from '../../types/scouting';
 import { GroupedVideoClip } from '../../lib/videoTime';
-import { collectClipMarkers, parseTimeToSeconds } from '../../lib/videoTime';
+import { collectClipMarkers, createTimestamp } from '../../lib/videoTime';
 import { useScouting } from '../../context/ScoutingContext';
 
 interface VideoClipEditorProps {
@@ -16,7 +16,8 @@ export const VideoClipEditor: React.FC<VideoClipEditorProps> = ({ clip, onClose 
   const [videoUrl, setVideoUrl] = useState(clip?.videoUrl || '');
   const [description, setDescription] = useState(clip?.description || '');
   const [timestamps, setTimestamps] = useState<VideoTimestamp[]>(clip?.timestamps || []);
-  const [label, setLabel] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -27,7 +28,8 @@ export const VideoClipEditor: React.FC<VideoClipEditorProps> = ({ clip, onClose 
     setVideoUrl(clip.videoUrl);
     setDescription(clip.description || '');
     setTimestamps(clip.timestamps || []);
-    setLabel('');
+    setStartTime('');
+    setEndTime('');
     setNote('');
     setError('');
   }, [clip?.id]);
@@ -35,13 +37,11 @@ export const VideoClipEditor: React.FC<VideoClipEditorProps> = ({ clip, onClose 
   if (!clip) return null;
 
   const addStamp = () => {
-    if (!label.trim() || !note.trim()) return;
-    const seconds = parseTimeToSeconds(label) ?? 0;
-    setTimestamps((prev) => [
-      ...prev,
-      { seconds, label: label.trim(), note: note.trim() },
-    ]);
-    setLabel('');
+    const stamp = createTimestamp(startTime, endTime, note);
+    if (!stamp) return;
+    setTimestamps((prev) => [...prev, stamp]);
+    setStartTime('');
+    setEndTime('');
     setNote('');
   };
 
@@ -119,7 +119,7 @@ export const VideoClipEditor: React.FC<VideoClipEditorProps> = ({ clip, onClose 
           <ul className="space-y-1.5">
             {timestamps.map((stamp, index) => (
               <li key={`${stamp.label}-${index}`} className="flex items-center gap-2 text-sm">
-                <span className="font-mono text-amber-400 w-16 shrink-0">{stamp.label}</span>
+                <span className="font-mono text-amber-400 w-32 shrink-0">{stamp.label}</span>
                 <span className="text-slate-200 flex-1">{stamp.note}</span>
                 <button
                   type="button"
@@ -133,10 +133,18 @@ export const VideoClipEditor: React.FC<VideoClipEditorProps> = ({ clip, onClose 
           </ul>
           <div className="flex items-center gap-2">
             <input
-              value={label}
-              onChange={(event) => setLabel(event.target.value)}
-              placeholder="01:30"
-              className="w-24 bg-[#141C2E] border border-[#23314D] rounded px-2 py-1.5 font-mono text-white"
+              value={startTime}
+              onChange={(event) => setStartTime(event.target.value)}
+              placeholder="Start 01:30"
+              aria-label="Start Time"
+              className="w-28 bg-[#141C2E] border border-[#23314D] rounded px-2 py-1.5 font-mono text-white"
+            />
+            <input
+              value={endTime}
+              onChange={(event) => setEndTime(event.target.value)}
+              placeholder="End 01:42"
+              aria-label="End Time"
+              className="w-28 bg-[#141C2E] border border-[#23314D] rounded px-2 py-1.5 font-mono text-white"
             />
             <input
               value={note}

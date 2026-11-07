@@ -66,7 +66,7 @@ function ClickableScoutNote({
   onSeek,
 }: {
   text: string;
-  onSeek: (seconds: number) => void;
+  onSeek: (seconds: number, endSeconds?: number) => void;
 }) {
   return (
     <span>
@@ -77,7 +77,7 @@ function ClickableScoutNote({
           <button
             key={index}
             type="button"
-            onClick={() => onSeek(part.seconds as number)}
+            onClick={() => onSeek(part.seconds as number, part.endSeconds ?? undefined)}
             className="font-mono font-bold text-amber-400 hover:text-amber-300 underline decoration-amber-400/40 underline-offset-2"
             title={`Aller à ${part.text}`}
           >
@@ -197,8 +197,9 @@ export const FilmSequencePlayer: React.FC<FilmSequencePlayerProps> = ({
         return;
       }
       if (decision === 'restart') {
+        if (Date.now() < loopGraceUntilRef.current && !loopArmedRef.current) return;
         loopArmedRef.current = false;
-        loopGraceUntilRef.current = Date.now() + 1200;
+        loopGraceUntilRef.current = Date.now() + 450;
         player.seekTo(activeLoop.start, true);
         player.playVideo();
         return;
@@ -211,8 +212,8 @@ export const FilmSequencePlayer: React.FC<FilmSequencePlayerProps> = ({
     return () => window.clearInterval(timer);
   }, [playerReady]);
 
-  const beginLoop = (seconds: number) => {
-    const next = loopWindow(seconds);
+  const beginLoop = (seconds: number, endSeconds?: number) => {
+    const next = loopWindow(seconds, endSeconds);
     loopArmedRef.current = false;
     loopGraceUntilRef.current = Date.now() + 2500;
     setLoop(next);
@@ -224,13 +225,13 @@ export const FilmSequencePlayer: React.FC<FilmSequencePlayerProps> = ({
     setLoop(null);
   };
 
-  const seekTo = (seconds: number, index?: number) => {
+  const seekTo = (seconds: number, index?: number, endSeconds?: number) => {
     if (index != null) setActiveIndex(index);
     if (!videoId) {
       window.open(videoUrl, '_blank', 'noopener,noreferrer');
       return;
     }
-    beginLoop(seconds);
+    beginLoop(seconds, endSeconds);
     const player = playerRef.current;
     if (player && playerReady) {
       player.seekTo(seconds, true);
@@ -250,7 +251,7 @@ export const FilmSequencePlayer: React.FC<FilmSequencePlayerProps> = ({
           {loop && (
             <div className="flex items-center justify-between gap-3 border-t border-amber-400/30 bg-amber-500/10 px-3 py-2 text-sm">
               <span className="font-semibold text-amber-300">
-                Loop Mode (6s active) · {formatClock(loop.start)}–{formatClock(loop.end)}
+                Loop {formatClock(loop.start)}–{formatClock(loop.end)}
               </span>
               <button
                 type="button"
@@ -281,7 +282,7 @@ export const FilmSequencePlayer: React.FC<FilmSequencePlayerProps> = ({
 
       {summary && (
         <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">
-          <ClickableScoutNote text={summary} onSeek={(seconds) => seekTo(seconds)} />
+          <ClickableScoutNote text={summary} onSeek={(seconds, endSeconds) => seekTo(seconds, undefined, endSeconds)} />
         </p>
       )}
 
@@ -302,18 +303,20 @@ export const FilmSequencePlayer: React.FC<FilmSequencePlayerProps> = ({
                 >
                   <button
                     type="button"
-                    onClick={() => seekTo(marker.seconds, index)}
+                    onClick={() => seekTo(marker.seconds, index, marker.endSeconds)}
                     className="font-mono font-bold text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded border border-amber-400/20 hover:bg-amber-400/20 shrink-0"
                     title={
                       videoId
-                        ? `Boucler ${marker.label} pendant 6 secondes`
+                        ? marker.endSeconds
+                          ? `Boucler ${marker.label}`
+                          : `Boucler ${marker.label} pendant 6 secondes`
                         : 'Ouvrir la vidéo'
                     }
                   >
                     {marker.label}
                   </button>
                   <span className="text-slate-300 leading-snug">
-                    <ClickableScoutNote text={marker.note} onSeek={(seconds) => seekTo(seconds)} />
+                    <ClickableScoutNote text={marker.note} onSeek={(seconds, endSeconds) => seekTo(seconds, undefined, endSeconds)} />
                   </span>
                   {videoId && (
                     <a

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Film, Plus, Play, ExternalLink, Trash2, Edit } from 'lucide-react';
 import { useScouting } from '../../context/ScoutingContext';
 import { VideoTimestamp } from '../../types/scouting';
-import { collectClipMarkers, groupVideoClips, parseTimeToSeconds } from '../../lib/videoTime';
+import { collectClipMarkers, createTimestamp, groupVideoClips } from '../../lib/videoTime';
 import { FilmSequencePlayer } from './FilmSequencePlayer';
 import { VideoClipEditor } from './VideoClipEditor';
 
@@ -24,17 +24,16 @@ export const VideoLibraryView: React.FC = () => {
   const [timestamps, setTimestamps] = useState<VideoTimestamp[]>([
     { seconds: 34, label: '00:34', note: 'Read the weakside trap and skipped to corner' },
   ]);
-  const [newTsLabel, setNewTsLabel] = useState('');
+  const [newTsStart, setNewTsStart] = useState('');
+  const [newTsEnd, setNewTsEnd] = useState('');
   const [newTsNote, setNewTsNote] = useState('');
 
   const handleAddTimestamp = () => {
-    if (!newTsLabel.trim() || !newTsNote.trim()) return;
-    const seconds = parseTimeToSeconds(newTsLabel) ?? 0;
-    setTimestamps((prev) => [
-      ...prev,
-      { seconds, label: newTsLabel.trim(), note: newTsNote.trim() },
-    ]);
-    setNewTsLabel('');
+    const stamp = createTimestamp(newTsStart, newTsEnd, newTsNote);
+    if (!stamp) return;
+    setTimestamps((prev) => [...prev, stamp]);
+    setNewTsStart('');
+    setNewTsEnd('');
     setNewTsNote('');
   };
 
@@ -196,10 +195,19 @@ export const VideoLibraryView: React.FC = () => {
             <div className="flex items-center gap-2 pt-2 border-t border-[#1C263B]">
               <input
                 type="text"
-                value={newTsLabel}
-                onChange={(e) => setNewTsLabel(e.target.value)}
-                placeholder="02:15"
-                className="w-20 bg-[#141C2E] border border-[#23314D] rounded px-2.5 py-1.5 font-mono text-center text-white focus:outline-none focus:border-amber-500"
+                value={newTsStart}
+                onChange={(e) => setNewTsStart(e.target.value)}
+                placeholder="Start 01:30"
+                aria-label="Start Time"
+                className="w-28 bg-[#141C2E] border border-[#23314D] rounded px-2.5 py-1.5 font-mono text-center text-white focus:outline-none focus:border-amber-500"
+              />
+              <input
+                type="text"
+                value={newTsEnd}
+                onChange={(e) => setNewTsEnd(e.target.value)}
+                placeholder="End 01:42"
+                aria-label="End Time"
+                className="w-28 bg-[#141C2E] border border-[#23314D] rounded px-2.5 py-1.5 font-mono text-center text-white focus:outline-none focus:border-amber-500"
               />
               <input
                 type="text"
