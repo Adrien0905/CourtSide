@@ -1,4 +1,4 @@
-import { VideoTimestamp } from '../types/scouting';
+import { VideoClip, VideoTimestamp } from '../types/scouting';
 
 const CLOCK = /^(?:(\d{1,2}):)?(\d{1,2}):(\d{2})$/;
 const INLINE_CLOCK = /(?<![\d:])(?:(\d{1,2}):)?(\d{1,2}):(\d{2})(?!:\d)/g;
@@ -25,6 +25,14 @@ export function resolveSeconds(marker: { seconds?: number; label?: string }): nu
   }
   const seconds = Number(marker.seconds);
   return Number.isFinite(seconds) && seconds >= 0 ? seconds : 0;
+}
+
+export function summaryDescription(text: string): string {
+  return text
+    .split(/\r?\n/)
+    .filter((line) => line.trim() && !NOTE_LINE.test(line))
+    .join('\n')
+    .trim();
 }
 
 export function parseTimestampedNotes(text: string): VideoTimestamp[] {
@@ -59,7 +67,11 @@ export function collectClipMarkers(clip: {
     })
     .filter((marker): marker is VideoTimestamp => marker != null);
 
-  const merged = [...explicit];
+  const clockCount = (value: string) => [...value.matchAll(INLINE_CLOCK)].length;
+  const singles = explicit.filter((marker) => clockCount(marker.label) <= 1);
+  const kept = singles.length > 0 ? singles : explicit;
+
+  const merged = [...kept];
   for (const parsed of parseTimestampedNotes(clip.description || '')) {
     const duplicate = merged.some(
       (marker) => marker.seconds === parsed.seconds && marker.note === parsed.note
@@ -68,6 +80,47 @@ export function collectClipMarkers(clip: {
   }
 
   return merged.sort((a, b) => a.seconds - b.seconds || a.label.localeCompare(b.label));
+}
+
+export interface GroupedVideoClip extends VideoClip {
+  sourceIds: string[];
+}
+
+export function groupVideoClips(clips: VideoClip[]): GroupedVideoClip[] {
+  const order: string[] = [];
+  const groups = new Map<string, GroupedVideoClip>();
+
+  for (const clip of clips) {
+    const youtubeId = extractYouTubeId(clip.videoUrl);
+    const key = youtubeId || clip.videoUrl.trim();
+    const markers = collectClipMarkers(clip);
+    const current = groups.get(key);
+
+    if (!current) {
+      order.push(key);
+      groups.set(key, {
+        ...clip,
+        videoUrl: youtubeId ? youtubeWatchUrl(youtubeId) : clip.videoUrl,
+        timestamps: markers,
+        sourceIds: [clip.id],
+      });
+      continue;
+    }
+
+    const description = [current.description, clip.description].filter(Boolean).join('\n');
+    current.timestamps = collectClipMarkers({
+      timestamps: [...current.timestamps, ...markers],
+      description,
+    });
+    const summary = [summaryDescription(current.description || ''), summaryDescription(clip.description || '')]
+      .filter(Boolean)
+      .filter((line, index, all) => all.indexOf(line) === index)
+      .join('\n');
+    if (summary) current.description = summary;
+    current.sourceIds.push(clip.id);
+  }
+
+  return order.map((key) => groups.get(key)!);
 }
 
 export function formatClock(totalSeconds: number): string {

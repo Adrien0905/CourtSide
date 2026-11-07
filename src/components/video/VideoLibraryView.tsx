@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import { Film, Plus, Play, ExternalLink, Trash2 } from 'lucide-react';
+import { Film, Plus, Play, ExternalLink, Trash2, Edit } from 'lucide-react';
 import { useScouting } from '../../context/ScoutingContext';
 import { VideoTimestamp } from '../../types/scouting';
-import { collectClipMarkers, parseTimeToSeconds } from '../../lib/videoTime';
+import { collectClipMarkers, groupVideoClips, parseTimeToSeconds } from '../../lib/videoTime';
 import { FilmSequencePlayer } from './FilmSequencePlayer';
+import { VideoClipEditor } from './VideoClipEditor';
 
 export const VideoLibraryView: React.FC = () => {
-  const { videos, prospects, addVideoClip, openProspect } = useScouting();
+  const { videos, prospects, addVideoClip, deleteVideoClip, openProspect } = useScouting();
+  const libraryVideos = groupVideoClips(videos);
 
   const [isAddingVideo, setIsAddingVideo] = useState(false);
+  const [editingVideoId, setEditingVideoId] = useState<string | null>(null);
 
   // Form states
   const [prospectId, setProspectId] = useState(prospects[0]?.id || '');
@@ -74,7 +77,7 @@ export const VideoLibraryView: React.FC = () => {
             <Film className="w-5 h-5 text-amber-400" />
             <span>Video Library & Timestamp Notes</span>
             <span className="text-sm font-mono font-medium text-slate-400">
-              ({videos.length} clips recorded)
+              ({libraryVideos.length} clips recorded)
             </span>
           </h1>
           <p className="text-sm text-slate-400 mt-0.5">
@@ -234,7 +237,7 @@ export const VideoLibraryView: React.FC = () => {
       )}
 
       {/* Videos List */}
-      {videos.length === 0 ? (
+      {libraryVideos.length === 0 ? (
         <div className="p-12 text-center text-slate-400 bg-[#111827] border border-[#1E293B] rounded-lg">
           <Film className="w-8 h-8 text-amber-500/40 mx-auto mb-2" />
           <p className="text-sm font-medium">No video cutups recorded</p>
@@ -244,7 +247,7 @@ export const VideoLibraryView: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          {videos.map((vid) => {
+          {libraryVideos.map((vid) => {
             const p = prospects.find((item) => item.id === vid.prospectId);
             return (
               <div
@@ -269,15 +272,37 @@ export const VideoLibraryView: React.FC = () => {
                     )}
                   </div>
 
-                  <a
-                    href={vid.videoUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-3.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-sm font-semibold flex items-center gap-1.5 transition-colors shrink-0 self-start sm:self-auto"
-                  >
-                    <span>Open External Video</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
+                  <div className="flex items-center gap-2 shrink-0 self-start sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => setEditingVideoId(vid.id)}
+                      className="px-2.5 py-1.5 bg-[#182337] hover:bg-[#1E2B47] text-slate-200 border border-[#253450] rounded text-sm font-semibold inline-flex items-center gap-1.5"
+                      title="Edit"
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        for (const id of vid.sourceIds) deleteVideoClip(id);
+                      }}
+                      className="px-2.5 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded text-sm font-semibold inline-flex items-center gap-1.5"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      Delete
+                    </button>
+                    <a
+                      href={vid.videoUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-3.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-sm font-semibold flex items-center gap-1.5 transition-colors"
+                    >
+                      <span>Open External Video</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
                 </div>
 
                 <FilmSequencePlayer
@@ -290,6 +315,11 @@ export const VideoLibraryView: React.FC = () => {
           })}
         </div>
       )}
+
+      <VideoClipEditor
+        clip={libraryVideos.find((video) => video.sourceIds.includes(editingVideoId || '')) || null}
+        onClose={() => setEditingVideoId(null)}
+      />
     </div>
   );
 };

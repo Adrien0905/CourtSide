@@ -1042,8 +1042,58 @@ app.post('/api/videos', (req, res) => {
   }
 });
 
+app.put('/api/videos/:id', (req, res) => {
+  try {
+    const existing = db.prepare('SELECT * FROM video_clips WHERE id = ?').get(req.params.id) as any;
+    if (!existing) return res.status(404).json({ error: 'Video not found' });
+
+    const v = req.body || {};
+    const videoUrl = String(v.videoUrl || existing.video_url || '');
+    const description = v.description ?? existing.description ?? '';
+    const timestamps = collectClipMarkers({
+      timestamps: v.timestamps || [],
+      description,
+    });
+    const platform = extractYouTubeId(videoUrl) ? 'youtube' : (v.platform || existing.platform || 'other');
+    const title = String(v.title || existing.title || '').trim();
+    if (!title || !videoUrl.trim()) {
+      return res.status(400).json({ error: 'Title and video URL are required' });
+    }
+
+    db.prepare(`
+      UPDATE video_clips
+      SET title = ?, video_url = ?, platform = ?, description = ?, tags = ?, timestamps = ?
+      WHERE id = ?
+    `).run(
+      title,
+      videoUrl.trim(),
+      platform,
+      description || null,
+      JSON.stringify(v.tags ?? (existing.tags ? JSON.parse(existing.tags) : [])),
+      JSON.stringify(timestamps),
+      req.params.id
+    );
+
+    res.json({
+      id: req.params.id,
+      prospectId: existing.prospect_id,
+      title,
+      videoUrl: videoUrl.trim(),
+      platform,
+      description: description || undefined,
+      tags: v.tags ?? (existing.tags ? JSON.parse(existing.tags) : []),
+      timestamps,
+      createdAt: existing.created_at,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.delete('/api/videos/:id', (req, res) => {
   try {
+    const existing = db.prepare('SELECT id FROM video_clips WHERE id = ?').get(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Video not found' });
     db.prepare('DELETE FROM video_clips WHERE id = ?').run(req.params.id);
     res.json({ success: true, id: req.params.id });
   } catch (err: any) {

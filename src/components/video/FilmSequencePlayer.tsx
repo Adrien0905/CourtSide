@@ -5,6 +5,7 @@ import {
   collectClipMarkers,
   extractYouTubeId,
   splitTimestampTokens,
+  summaryDescription,
   youtubeWatchUrl,
 } from '../../lib/videoTime';
 
@@ -98,6 +99,7 @@ export const FilmSequencePlayer: React.FC<FilmSequencePlayerProps> = ({
 }) => {
   const videoId = extractYouTubeId(videoUrl);
   const markers = collectClipMarkers({ timestamps, description });
+  const summary = summaryDescription(description || '');
   const hostRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<YouTubePlayer | null>(null);
   const pendingSeek = useRef<number | null>(null);
@@ -200,25 +202,25 @@ export const FilmSequencePlayer: React.FC<FilmSequencePlayerProps> = ({
         </div>
       )}
 
-      {description && (
-        <p className="text-sm text-slate-300 leading-relaxed">
-          <ClickableScoutNote text={description} onSeek={(seconds) => seekTo(seconds)} />
+      {summary && (
+        <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">
+          <ClickableScoutNote text={summary} onSeek={(seconds) => seekTo(seconds)} />
         </p>
       )}
 
       {markers.length > 0 && (
-        <div className="space-y-2 pt-2 border-t border-[#1C263B]">
+        <div className="rounded-lg border border-[#202E4A] bg-[#131C2D] p-3 space-y-2">
           <div className="text-sm uppercase font-bold tracking-wider text-slate-400">
             {heading}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+          <ul className="space-y-1.5">
             {markers.map((marker, index) => {
               const active = activeIndex === index;
               return (
-                <div
+                <li
                   key={`${marker.label}-${marker.seconds}-${index}`}
-                  className={`p-2.5 rounded bg-[#131C2D] border flex items-start gap-2.5 text-sm ${
-                    active ? 'border-amber-400/60' : 'border-[#202E4A]'
+                  className={`flex items-start gap-2.5 text-sm rounded px-1.5 py-1 ${
+                    active ? 'bg-amber-400/10' : ''
                   }`}
                 >
                   <button
@@ -247,10 +249,10 @@ export const FilmSequencePlayer: React.FC<FilmSequencePlayerProps> = ({
                       <ExternalLink className="w-3 h-3" />
                     </a>
                   )}
-                </div>
+                </li>
               );
             })}
-          </div>
+          </ul>
         </div>
       )}
     </div>

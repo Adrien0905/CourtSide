@@ -64,6 +64,8 @@ interface ScoutingContextType {
   deleteNote: (id: string) => Promise<void>;
   addGameLog: (log: Omit<GameLogItem, 'id'>) => Promise<void>;
   addVideoClip: (video: Omit<VideoClip, 'id' | 'createdAt'>) => Promise<void>;
+  updateVideoClip: (id: string, updates: Partial<Omit<VideoClip, 'id' | 'createdAt'>>) => Promise<void>;
+  deleteVideoClip: (id: string) => Promise<void>;
   updateDraftBoardRank: (prospectId: string, targetRank: number, targetTier: number, justification?: string) => Promise<void>;
   replaceDraftBoard: (entries: DraftBoardEntry[]) => Promise<void>;
   removeDraftBoardEntry: (prospectId: string) => Promise<void>;
@@ -528,6 +530,47 @@ export const ScoutingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  const updateVideoClip = async (id: string, updates: Partial<Omit<VideoClip, 'id' | 'createdAt'>>) => {
+    const current = videos.find((clip) => clip.id === id);
+    if (!current) return;
+    const next: VideoClip = {
+      ...current,
+      ...updates,
+      id,
+      createdAt: current.createdAt,
+    };
+    setVideos((prev) => prev.map((clip) => (clip.id === id ? next : clip)));
+
+    try {
+      const saved = await requestJson<VideoClip>(`/api/videos/${encodeURIComponent(id)}`, 'PUT', next);
+      setVideos((prev) => prev.map((clip) => (clip.id === id ? { ...clip, ...saved, id } : clip)));
+    } catch (err) {
+      console.warn('Could not update video clip:', err);
+      await refreshAllData();
+    }
+  };
+
+  const deleteVideoClip = async (id: string) => {
+    const current = videos.find((clip) => clip.id === id);
+    setVideos((prev) => prev.filter((clip) => clip.id !== id));
+    if (current) {
+      setProspects((prev) =>
+        prev.map((prospect) =>
+          prospect.id === current.prospectId
+            ? { ...prospect, videoCount: Math.max(0, (prospect.videoCount || 0) - 1) }
+            : prospect
+        )
+      );
+    }
+
+    try {
+      await requestJson(`/api/videos/${encodeURIComponent(id)}`, 'DELETE');
+    } catch (err) {
+      console.warn('Could not delete video clip:', err);
+      await refreshAllData();
+    }
+  };
+
   const persistDraftBoard = async (entries: DraftBoardEntry[]) => {
     const normalized = entries.map((item, idx) => ({
       prospectId: item.prospectId,
@@ -745,6 +788,8 @@ export const ScoutingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         deleteNote,
         addGameLog,
         addVideoClip,
+        updateVideoClip,
+        deleteVideoClip,
         updateDraftBoardRank,
         replaceDraftBoard,
         removeDraftBoardEntry,

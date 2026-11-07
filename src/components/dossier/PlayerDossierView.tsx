@@ -42,7 +42,8 @@ import { RadarChart, categoryRadarPoints } from '../common/RadarChart';
 import { PlayerAvatar } from '../common/PlayerAvatar';
 import { FilmSequencePlayer } from '../video/FilmSequencePlayer';
 import { EditProspectModal } from '../prospects/EditProspectModal';
-import { collectClipMarkers, parseTimeToSeconds } from '../../lib/videoTime';
+import { VideoClipEditor } from '../video/VideoClipEditor';
+import { collectClipMarkers, groupVideoClips, parseTimeToSeconds } from '../../lib/videoTime';
 import { ProspectStatus, ScoutingReport, confidenceLabel } from '../../types/scouting';
 
 interface PlayerDossierViewProps {
@@ -70,6 +71,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
     dossierFocus,
     setDossierFocus,
     addVideoClip,
+    deleteVideoClip,
     deleteProspect,
   } = useScouting();
 
@@ -85,6 +87,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
   const [editContent, setEditContent] = useState('');
   const [editTags, setEditTags] = useState('');
   const [isAddingVideo, setIsAddingVideo] = useState(false);
+  const [editingVideoId, setEditingVideoId] = useState<string | null>(null);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [deleteError, setDeleteError] = useState('');
@@ -142,7 +145,7 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
     });
   };
   const playerNotes = notes.filter((n) => n.prospectId === p.id);
-  const playerVideos = videos.filter((v) => v.prospectId === p.id);
+  const playerVideos = groupVideoClips(videos.filter((v) => v.prospectId === p.id));
   const latestReport = playerReports[0] || p.latestReport;
   const seasonStats = dedupeSeasonStats(p.stats);
   const currentStats = seasonStats[0];
@@ -924,15 +927,37 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
                         <span>{vid.title}</span>
                       </h4>
                     </div>
-                    <a
-                      href={vid.videoUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="px-3 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-sm font-medium flex items-center gap-1.5 transition-colors"
-                    >
-                      <span>Watch Full Film</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditingVideoId(vid.id)}
+                        className="px-2.5 py-1 bg-[#182337] hover:bg-[#1E2B47] text-slate-200 border border-[#253450] rounded text-sm font-medium inline-flex items-center gap-1.5"
+                        title="Edit"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          for (const id of vid.sourceIds) deleteVideoClip(id);
+                        }}
+                        className="px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded text-sm font-medium inline-flex items-center gap-1.5"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Delete
+                      </button>
+                      <a
+                        href={vid.videoUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-sm font-medium flex items-center gap-1.5 transition-colors"
+                      >
+                        <span>Watch Full Film</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
                   </div>
 
                   <FilmSequencePlayer
@@ -1256,6 +1281,10 @@ export const PlayerDossierView: React.FC<PlayerDossierViewProps> = ({
       )}
 
       <EditProspectModal prospect={isEditingProfile ? p : null} onClose={() => setIsEditingProfile(false)} />
+      <VideoClipEditor
+        clip={playerVideos.find((video) => video.id === editingVideoId) || null}
+        onClose={() => setEditingVideoId(null)}
+      />
 
       {isConfirmingDelete && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
